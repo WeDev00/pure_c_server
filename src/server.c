@@ -133,7 +133,7 @@ int main(void) {
         //chiude il socket
         closesocket(client_socket); // Chiude subito la connessione, senza leggere nulla
 
-        if (requestCount == 3) break;
+        if (requestsCount == 3) break;
     }
 
     printf("Digita un tasto per chiudere il server\n");
