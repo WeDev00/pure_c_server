@@ -39,6 +39,7 @@ int main(void) {
         return 1;
     }
 
+
     /*
      * la funzione socket() crea (a livello di kernel) un nuovo socket TCP usando IpV4.
      * se incontra qualche errore, ritorna il valore costante INVALID_SOCKET.
@@ -85,6 +86,63 @@ int main(void) {
         return 1;
     }
 
+    printf("Server in ascolto sulla porta %d all'indirizzo %s \n",ntohs(server.sin_port),inet_ntoa(server.sin_addr));
 
+
+    /*
+     * imposta il socket in listen, dove 3 è la grandezza della queue che può contenere delle richieste in attesa
+     * che quelle in elaborazione finiscano.
+     * Cambia lo stato del socket, marcandolo come “passivo” (non inizia connessioni, ma le accetta).
+     * Costruisce una coda di richieste di connessione: le connessioni in arrivo vengono accodate, e il server può poi accettarle una alla volta con accept.
+     * Non accetta ancora alcun client: mette solo il server “pronto ad ascoltare”.
+     */
+    listen(socketReference , 3);
+
+    //variabile dello stesso tipo di 'server', contiene informazioni tipo indirizzo ip e port del client che farà la richiesta
+    struct sockaddr_in client;
+    //memorizza la grandezza della variabile client, in termini di byte
+    int client_len = sizeof(client);
+    int requestsCount=0;
+    while (1){
+        /*
+         la funzione "accept" serve ad accettare la prima richiesta presente nella coda di ascolto
+         Crea un nuovo socket che verrà usato per la comunicazione con il client; Ritorna il numero usato da windows per
+         identificare questo canale di comunicazione a livello hardware.
+         I parametri accettati sono:
+         1. socketReference = riferimento di windows al socket del server da cui estrarre la richiesta
+            (in altre parole, la coda da cui estrarre la richiesta)
+         2. il puntatore all'area di memoria dedicata al client, che verrà riempita con le informazioni del tipo socketaddr_in
+         3. la dimensione dell'area di memoria dedicata, che verrà eventualmente manipolata per essere riallocata in caso di spazio insufficiente
+
+         In caso di errore ritorna la costante INVALID_SOCKET
+         */
+        SOCKET client_socket = accept(socketReference, (struct sockaddr *)&client, &client_len);
+        if (client_socket == INVALID_SOCKET) {
+            printf("Errore nell'accettazione della connessione.\n");
+            closesocket(socketReference);
+            WSACleanup();
+            return 1;
+        }
+        /*
+         In caso di connessione andata a buon fine, stampiamo:
+         1.L'indirizzo ip del client, convertito in stringa da inet_ntoa
+         2.Il port usato dal client convertito in numero da ntohs
+         */
+        printf("Connessione accettata da %s:%d\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
+        requestsCount++;
+        //chiude il socket
+        closesocket(client_socket); // Chiude subito la connessione, senza leggere nulla
+
+        if (requestCount == 3) break;
+    }
+
+    printf("Digita un tasto per chiudere il server\n");
+    //funzione che aspetta un input da tastiera, fino a quando non lo riceve "blocca" l'esecuzione, simulando l'accensione del server e la messa in attesa
+    getchar();
+
+
+    closesocket(socketReference);
+    //termina la libreria e svuota sockaddr_in
+    WSACleanup();
     return 0;
 }
