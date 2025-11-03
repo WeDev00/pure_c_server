@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <winsock2.h>
+#include "handlers/headers/requests_handler.h"
+
 
 /**
  * questa è la funzione principale che deve inizializzare il socket
@@ -25,17 +27,17 @@ int main(void) {
      */
     SOCKET socketReference;
 
-    //Struttura che contiene le informazioni di indirizzo e porta del server.
+    // Struttura che contiene le informazioni di indirizzo e porta del server.
     struct sockaddr_in server;
-    //indica semplicemente il port scelto
+    // indica semplicemente il port scelto
     int port = 8080;
 
     /*
      * la funzione WSAStartup inizializza la libreria e popola la variabile wsa.
      * Se questa funzione incontra qualche errore, ritorna un valore diverso da zero
      */
-    if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
-        printf("Failed. Error Code : %d" , WSAGetLastError());
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        printf("Failed. Error Code : %d", WSAGetLastError());
         return 1;
     }
 
@@ -45,14 +47,13 @@ int main(void) {
      * se incontra qualche errore, ritorna il valore costante INVALID_SOCKET.
      * I parametri che accetta sono:
      * 1. af (Address Family) : AF:_INET indica ipv4, mentre AF_INET6 indica ipv6
-     * 2. type: specifica il tipo di comunicazione SOCK_STREAM → Connessione (TCP): canale affidabile e continuo tra due endpoint.
-     *                                             SOCK_DGRAM → Datagrammi (UDP): consente l’invio di pacchetti singoli.
-     * 3.protocol: Indica il protocollo specifico da usare: IPPROTO_TCP → Usa il protocollo TCP
-     *                                                      IPPROTO_UDP → Usa UDP
-     *             0 → Se il valore è 0, il sistema operativo sceglierà automaticamente il protocollo “default” della combinazione af e type dati.
+     * 2. type: specifica il tipo di comunicazione SOCK_STREAM → Connessione (TCP): canale affidabile e continuo tra due
+     * endpoint. SOCK_DGRAM → Datagrammi (UDP): consente l’invio di pacchetti singoli. 3.protocol: Indica il protocollo
+     * specifico da usare: IPPROTO_TCP → Usa il protocollo TCP IPPROTO_UDP → Usa UDP 0 → Se il valore è 0, il sistema
+     * operativo sceglierà automaticamente il protocollo “default” della combinazione af e type dati.
      */
-    if((socketReference = socket(AF_INET , SOCK_STREAM , 0 )) == INVALID_SOCKET) {
-        printf("Could not create socket : %d" , WSAGetLastError());
+    if ((socketReference = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
+        printf("Could not create socket : %d", WSAGetLastError());
         return 1;
     }
 
@@ -65,7 +66,10 @@ int main(void) {
      * sin_port indica il port su cui il server attenderà le chiamate http
      */
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = inet_addr("127.0.0.1"); //indirizzo raggiungibile solo in locale, dalla stessa macchina su cui viene avviato il server, in altri casi bisognerebbe mettere un indirizzo ip appartenente alla macchina che fa girare il server
+    server.sin_addr.s_addr =
+            inet_addr("127.0.0.1"); // indirizzo raggiungibile solo in locale, dalla stessa macchina su cui viene
+                                    // avviato il server, in altri casi bisognerebbe mettere un indirizzo ip
+                                    // appartenente alla macchina che fa girare il server
     server.sin_port = htons(port);
 
 
@@ -79,31 +83,33 @@ int main(void) {
      * Dopo questa operazione il socket smette di essere solo una "porta" potenziale e diventa
      * una vera e propria porta legata ad un indirizzo ip, quindi adesso può funzionare correttamente
      */
-    if(bind(socketReference , (struct sockaddr *)&server , sizeof(server)) == SOCKET_ERROR) {
-        printf("Bind failed with error code : %d" , WSAGetLastError());
+    if (bind(socketReference, (struct sockaddr *) &server, sizeof(server)) == SOCKET_ERROR) {
+        printf("Bind failed with error code : %d", WSAGetLastError());
         closesocket(socketReference);
         WSACleanup();
         return 1;
     }
 
-    printf("Server in ascolto sulla porta %d all'indirizzo %s \n",ntohs(server.sin_port),inet_ntoa(server.sin_addr));
+    printf("Server in ascolto sulla porta %d all'indirizzo %s \n", ntohs(server.sin_port), inet_ntoa(server.sin_addr));
 
 
     /*
      * imposta il socket in listen, dove 3 è la grandezza della queue che può contenere delle richieste in attesa
      * che quelle in elaborazione finiscano.
      * Cambia lo stato del socket, marcandolo come “passivo” (non inizia connessioni, ma le accetta).
-     * Costruisce una coda di richieste di connessione: le connessioni in arrivo vengono accodate, e il server può poi accettarle una alla volta con accept.
-     * Non accetta ancora alcun client: mette solo il server “pronto ad ascoltare”.
+     * Costruisce una coda di richieste di connessione: le connessioni in arrivo vengono accodate, e il server può poi
+     * accettarle una alla volta con accept. Non accetta ancora alcun client: mette solo il server “pronto ad
+     * ascoltare”.
      */
-    listen(socketReference , 3);
+    listen(socketReference, 3);
 
-    //variabile dello stesso tipo di 'server', contiene informazioni tipo indirizzo ip e port del client che farà la richiesta
+    // variabile dello stesso tipo di 'server', contiene informazioni tipo indirizzo ip e port del client che farà la
+    // richiesta
     struct sockaddr_in client;
-    //memorizza la grandezza della variabile client, in termini di byte
+    // memorizza la grandezza della variabile client, in termini di byte
     int client_len = sizeof(client);
-    int requestsCount=0;
-    while (1){
+    int requestsCount = 0;
+    while (1) {
         /*
          la funzione "accept" serve ad accettare la prima richiesta presente nella coda di ascolto
          Crea un nuovo socket che verrà usato per la comunicazione con il client; Ritorna il numero usato da windows per
@@ -111,12 +117,14 @@ int main(void) {
          I parametri accettati sono:
          1. socketReference = riferimento di windows al socket del server da cui estrarre la richiesta
             (in altre parole, la coda da cui estrarre la richiesta)
-         2. il puntatore all'area di memoria dedicata al client, che verrà riempita con le informazioni del tipo socketaddr_in
-         3. la dimensione dell'area di memoria dedicata, che verrà eventualmente manipolata per essere riallocata in caso di spazio insufficiente
+         2. il puntatore all'area di memoria dedicata al client, che verrà riempita con le informazioni del tipo
+         socketaddr_in
+         3. la dimensione dell'area di memoria dedicata, che verrà eventualmente manipolata per essere riallocata in
+         caso di spazio insufficiente
 
          In caso di errore ritorna la costante INVALID_SOCKET
          */
-        SOCKET client_socket = accept(socketReference, (struct sockaddr *)&client, &client_len);
+        SOCKET client_socket = accept(socketReference, (struct sockaddr *) &client, &client_len);
         if (client_socket == INVALID_SOCKET) {
             printf("Errore nell'accettazione della connessione.\n");
             closesocket(socketReference);
@@ -130,19 +138,24 @@ int main(void) {
          */
         printf("Connessione accettata da %s:%d\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
         requestsCount++;
-        //chiude il socket
+
+        handle_request(client_socket, client, client_len);
+
+        // chiude il socket
         closesocket(client_socket); // Chiude subito la connessione, senza leggere nulla
 
-        if (requestsCount == 3) break;
+        if (requestsCount == 20)
+            break;
     }
 
-    printf("Digita un tasto per chiudere il server\n");
-    //funzione che aspetta un input da tastiera, fino a quando non lo riceve "blocca" l'esecuzione, simulando l'accensione del server e la messa in attesa
+    printf("Digita INVIO per chiudere il server\n");
+    // funzione che aspetta un input da tastiera, fino a quando non lo riceve "blocca" l'esecuzione, simulando
+    // l'accensione del server e la messa in attesa
     getchar();
 
 
     closesocket(socketReference);
-    //termina la libreria e svuota sockaddr_in
+    // termina la libreria e svuota sockaddr_in
     WSACleanup();
     return 0;
 }
