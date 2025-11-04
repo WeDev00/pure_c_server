@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <winsock2.h>
-#include "handlers/headers/requests_handler.h"
+#include "handlers/headers/gateway.h"
 
 
 /**
@@ -139,10 +139,7 @@ int main(void) {
         printf("Connessione accettata da %s:%d\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
         requestsCount++;
 
-        handle_request(client_socket, client, client_len);
-
-        // chiude il socket
-        closesocket(client_socket); // Chiude subito la connessione, senza leggere nulla
+        route_request(client_socket, client, client_len);
 
         if (requestsCount == 20)
             break;

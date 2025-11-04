@@ -1,8 +1,32 @@
-#include "headers/requests_handler.h"
+#include "headers/gateway.h"
 #include <stdio.h>
 #include <winsock2.h>
 
-size_t HEADER_BUFFER_CAPACITY = 65536;
+#include "../../../../../../../Program Files/JetBrains/CLion 2025.2.3/bin/mingw/lib/gcc/x86_64-w64-mingw32/13.1.0/include/stdbool.h"
+#include "headers/controller_headers/english_controller.h"
+#include "headers/controller_headers/italian_controller.h"
+
+const size_t HEADER_BUFFER_CAPACITY = 65536;
+
+/*
+ * questo definisce una funzione generica, che verrà in futuro
+ * identificata dalla parola "ControllerFn".
+ * La funzione ritorna void e prende in input due parametri, un socket e un char*
+ */
+typedef void (*ControllerFn)(SOCKET, char *, char *);
+
+// qui stiamo definendo il tipo "Route", composto da una stringa path e una funzione handler che ritornerà void
+typedef struct {
+    const char *path;
+    ControllerFn handler;
+} Route;
+
+Route routes[] = {
+        {"/english", englishControllerSwitch}, // stiamo legando il path "/english" alla funzione routeEnglishRequest
+                                               // del controller "english_controller"
+        {"/italian", italianControllerSwitch},
+};
+
 static char *read_header(SOCKET client) {
 
     /*
@@ -75,13 +99,18 @@ static char *read_header(SOCKET client) {
     return requestReadDataBuffer;
 }
 
+static char *extractHttpMethod(char *headerInfo) { return strtok(headerInfo, " "); }
+
+static char *extractPath(char *headerInfo) { return strtok(NULL, " "); }
 
 /*prende in input:
  * 1. il client che ha fatto la richiesta GIA' accettata dal server
  * 2. l'indirizzo del client
  * 3. la grandezza della variabile che contiene l'indirizzo
+ *
+ * Ha come obiettivo quello di selezionare il controller che dovrà occuparsi di questa richiesta
  */
-int handle_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
+int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
 
     printf("-----------------------------------------------\n");
 
@@ -98,29 +127,40 @@ int handle_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
 
     char *p = strstr(header, "HTTP");
     size_t info_len = (size_t) (p - header);
-    char *info = malloc(info_len + 1);
-    memcpy(info, header, info_len);
-    info[info_len] = '\0';
-    printf("Info utili %s\n-----------------------------------------------\n\n\n", info);
-
+    char *headerInfo = malloc(info_len + 1);
+    memcpy(headerInfo, header, info_len);
+    headerInfo[info_len] = '\0';
+    printf("Info utili %s\n-----------------------------------------------\n\n\n", headerInfo);
     free(header);
-    free(p);
-    free(info);
+    char *method = extractHttpMethod(headerInfo);
+    char *path = extractPath(headerInfo);
 
-    // 4) Risponde con un 200 minimale e chiude
-    const char *resp = "HTTP/1.1 200 OK\r\n"
-                       "Content-Type: text/plain\r\n"
-                       "Content-Length: 2\r\n"
-                       "Connection: close\r\n"
-                       "\r\n"
-                       "OK";
-    if (send(client, resp, (int) strlen(resp), 0) == SOCKET_ERROR) {
-        int err = WSAGetLastError();
-        printf("send error: %d\n", err);
-        // continua comunque alla chiusura
+    int handled = 0;
+    for (int i = 0; i < sizeof(routes) / sizeof(Route); i++) {
+        if (strncmp(path, routes[i].path, strlen(routes[i].path)) == 0) {
+            routes[i].handler(client, path, method);
+            handled = 1;
+            break;
+        }
     }
 
-    // 5) Chiude la connessione del client
+    if (handled == 0) {
+        const char *resp = "HTTP/1.1 400 BAD_REQUEST\r\n"
+                           "Content-Type: text/plain\r\n"
+                           "Connection: close\r\n"
+                           "\r\n"
+                           "BAD_REQUEST";
+        if (send(client, resp, (int) strlen(resp), 0) == SOCKET_ERROR) {
+            int err = WSAGetLastError();
+            printf("send error: %d\n", err);
+            // continua comunque alla chiusura
+        }
+    }
+    // chiude il socket di comunicazione con il client
     closesocket(client);
+
+    // libera memoria allocata
+    free(headerInfo);
+
     return 0;
 }
