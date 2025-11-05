@@ -11,7 +11,7 @@ const size_t HEADER_BUFFER_CAPACITY = 65536;
  * identificata dalla parola "ControllerFn".
  * La funzione ritorna void e prende in input due parametri, un socket e un char*
  */
-typedef void (*ControllerFn)(SOCKET, char *, char *);
+typedef void (*ControllerFn)(SOCKET, const char *, const char *);
 
 // qui stiamo definendo il tipo "Route", composto da una stringa path e una funzione handler (controllerSwitch) che
 // ritornerà void e che avrà l'obiettivo di switchare la chiamata al metodo del controller designato
