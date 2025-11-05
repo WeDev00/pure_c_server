@@ -53,15 +53,14 @@ void italianControllerSwitch(const SOCKET client, const char *path, const char *
     }
 
     if (handled == 0) {
-        const char *resp = "HTTP/1.1 400 BAD_REQUEST\r\n"
+        const char *resp = "HTTP/1.1 404 NOT_FOUND\r\n"
                            "Content-Type: text/plain\r\n"
                            "Connection: close\r\n"
                            "\r\n"
-                           "BAD_REQUEST";
+                           "NOT_FOUND";
         if (send(client, resp, (int) strlen(resp), 0) == SOCKET_ERROR) {
             int err = WSAGetLastError();
             printf("send error: %d\n", err);
         }
     }
-    closesocket(client);
 }
