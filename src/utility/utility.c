@@ -109,6 +109,11 @@ char *extractHttpMethod(char *headers) { return strtok(headers, " "); }
 char *extractPath(char *headers) { return strtok(NULL, " "); }
 
 char *readBody(SOCKET client, int contentLength) {
+
+    if (contentLength <= 0) {
+        return NULL;
+    }
+
     char *requestReadDataBuffer = calloc(BODY_BUFFER_CAPACITY + 1, sizeof(char));
 
     if (!requestReadDataBuffer) {
@@ -123,13 +128,13 @@ char *readBody(SOCKET client, int contentLength) {
             int err = WSAGetLastError();
             printf("recv error: %d\n", err);
             break;
-        } else if (n == 0) {
+        }
+        if (n == 0) {
             printf("connection closed\n");
             break;
-        } else {
-            requestReadDataBuffer[n] = '\0';
-            return requestReadDataBuffer;
         }
+        requestReadDataBuffer[n] = '\0';
+        return requestReadDataBuffer;
     }
 
     free(requestReadDataBuffer);
