@@ -2,11 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *read_headers(SOCKET client) {
+const size_t HEADERS_BUFFER_CAPACITY = 65536;
+const size_t BODY_BUFFER_CAPACITY = 65536;
+
+char *readHeaders(SOCKET client) {
     char buf[4096];
-    char *requestReadDataBuffer = calloc(HEADER_BUFFER_CAPACITY, sizeof(char));
+    char *requestReadDataBuffer = calloc(HEADERS_BUFFER_CAPACITY, sizeof(char));
     if (!requestReadDataBuffer) {
-        printf("Errore: impossibile allocare memoria per gli header\n");
+        printf("Errore: impossibile allocare memoria per la lettura degli header\n");
         return NULL;
     }
 
@@ -14,7 +17,7 @@ char *read_headers(SOCKET client) {
         int n = recv(client, buf, sizeof(buf), MSG_PEEK);
 
         if (n > 0) {
-            if (n >= (int) HEADER_BUFFER_CAPACITY) {
+            if (n >= (int) HEADERS_BUFFER_CAPACITY) {
                 printf("request too large (%d bytes)\n", n);
                 closesocket(client);
                 free(requestReadDataBuffer);
@@ -104,3 +107,31 @@ char *extractHeaderInfo(const char *headers) {
 char *extractHttpMethod(char *headers) { return strtok(headers, " "); }
 
 char *extractPath(char *headers) { return strtok(NULL, " "); }
+
+char *readBody(SOCKET client, int contentLength) {
+    char *requestReadDataBuffer = calloc(BODY_BUFFER_CAPACITY + 1, sizeof(char));
+
+    if (!requestReadDataBuffer) {
+        printf("Errore: impossibile allocare memoria per la lettura del body");
+        return NULL;
+    }
+
+    while (1) {
+        int n = recv(client, requestReadDataBuffer, contentLength, 0);
+
+        if (n < 0) {
+            int err = WSAGetLastError();
+            printf("recv error: %d\n", err);
+            break;
+        } else if (n == 0) {
+            printf("connection closed\n");
+            break;
+        } else {
+            requestReadDataBuffer[n] = '\0';
+            return requestReadDataBuffer;
+        }
+    }
+
+    free(requestReadDataBuffer);
+    return NULL;
+}

@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
-#include <winsock.h>
 
-typedef void (*EndpointFn)(SOCKET client); // definizione (puntatore a) funzione che gestisce la singola richiesta
+#include "../../utility/utility.h"
+
+typedef void (*EndpointFn)(SOCKET client,
+                           int contentLength); // definizione (puntatore a) funzione che gestisce la singola richiesta
 
 typedef struct {
     const char *method; // "GET", "POST", ecc.
@@ -10,11 +12,21 @@ typedef struct {
     EndpointFn handler; // funzione che risponde
 } Endpoint;
 
-void replyWorldRequest(SOCKET client) {}
+void replyWorldRequest(SOCKET client, int contentLength) {}
 
-void replyHomeRequest(SOCKET client) {}
+void replyHomeRequest(SOCKET client, int contentLength) {}
 
-void replyHomePostRequest(SOCKET client) {}
+void replyHomePostRequest(SOCKET client, int contentLength) {
+    char *body = readBody(client, contentLength);
+
+    printf("BODY LETTO:\n%.*s", contentLength, body);
+
+    const char *resp = "HTTP/1.1 200 OK\r\n"
+                       "Content-Type: text/plain\r\n"
+                       "Connection: close\r\n\r\n"
+                       "Body ricevuto gg bro";
+    send(client, resp, (int) strlen(resp), 0);
+}
 
 // Definizione endpoints
 static Endpoint endpoints[] = {
@@ -29,7 +41,7 @@ void englishControllerSwitch(const SOCKET client, const char *path, const char *
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
         if (strcmp(method, endpoints[i].method) == 0 &&
             strncmp(path, endpoints[i].path, strlen(endpoints[i].path)) == 0) {
-            endpoints[i].handler(client);
+            endpoints[i].handler(client, contentLenght);
             handled = 1;
             break;
         }

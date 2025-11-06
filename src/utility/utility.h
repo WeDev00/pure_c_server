@@ -1,9 +1,10 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include <winsock2.h>
-const size_t HEADER_BUFFER_CAPACITY = 65536;
+extern const size_t HEADERS_BUFFER_CAPACITY;
+extern const size_t BODY_BUFFER_CAPACITY;
 
-char *read_headers(SOCKET client);
+char *readHeaders(SOCKET client);
 
 int extractContentLenght(const char *headers);
 
@@ -12,5 +13,7 @@ char *extractHeaderInfo(const char *headers);
 char *extractHttpMethod(char *headers);
 
 char *extractPath(char *headers);
+
+char *readBody(SOCKET client, int contentLength);
 
 #endif

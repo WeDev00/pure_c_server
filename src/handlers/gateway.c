@@ -38,20 +38,20 @@ int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
 
     printf("-----------------------------------------------\n");
 
-    char *header = read_headers(client);
+    char *headers = readHeaders(client);
 
-    if (header == NULL) {
+    if (headers == NULL) {
         printf("Errore nella lettura dell'header\n");
         return -1;
     }
     /* stampa il contenuto ricevuto (fino agli header) per diagnosi; %.*s limita l’output ai soli
      * ‘total’ byte validi dell’accumulatore.
      */
-    printf("Header ricevuto:\n%.*s", HEADER_BUFFER_CAPACITY, header);
+    printf("Header ricevuto:\n%.*s", HEADERS_BUFFER_CAPACITY, headers);
 
-    int contentLenght = extractContentLenght(header);
-    char *headerInfo = extractHeaderInfo(header);
-    free(header);
+    int contentLenght = extractContentLenght(headers);
+    char *headerInfo = extractHeaderInfo(headers);
+    free(headers);
     char *method = extractHttpMethod(headerInfo);
     char *path = extractPath(headerInfo);
 
