@@ -24,7 +24,7 @@ static Endpoint endpoints[] = {
 };
 
 
-void englishControllerSwitch(const SOCKET client, const char *path, const char *method) {
+void englishControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLenght) {
     int handled = 0;
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
         if (strcmp(method, endpoints[i].method) == 0 &&

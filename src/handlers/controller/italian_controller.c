@@ -39,7 +39,7 @@ Endpoint endpoints[] = {
         {"GET", "/italian/casa", replyCasaRequest},
 };
 
-void italianControllerSwitch(const SOCKET client, const char *path, const char *method) {
+void italianControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLenght) {
 
     int handled = 0;
 

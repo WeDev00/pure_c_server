@@ -9,6 +9,8 @@ add_executable(pure_c_server src/server.c
         src/handlers/controller/english_controller.c
         src/handlers/controller/italian_controller.c
         src/handlers/headers/controller_headers/english_controller.h
-        src/handlers/headers/controller_headers/italian_controller.h)
+        src/handlers/headers/controller_headers/italian_controller.h
+        src/utility/utility.h
+        src/utility/utility.c)
 
 target_link_libraries(pure_c_server ws2_32)
