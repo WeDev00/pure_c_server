@@ -1,4 +1,4 @@
-#include "utility.h"
+#include "../headers/utility.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -76,7 +76,7 @@ int extractContentLenght(const char *headers) {
         return -1;
     }
 
-    // 2️⃣ Estrarre il valore numerico
+    // Estrarre il valore numerico
     int contentLength = 0;
     if (sscanf(cl_header, "Content-Length: %d", &contentLength) != 1 || contentLength <= 0) {
         printf("Content-Length non valido.\n");

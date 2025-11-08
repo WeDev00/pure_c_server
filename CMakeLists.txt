@@ -4,13 +4,13 @@ project(pure_c_server C)
 set(CMAKE_C_STANDARD 11)
 
 add_executable(pure_c_server src/server.c
-        src/handlers/gateway.c
-        src/handlers/headers/gateway.h
-        src/handlers/controller/english_controller.c
-        src/handlers/controller/italian_controller.c
-        src/handlers/headers/controller_headers/english_controller.h
-        src/handlers/headers/controller_headers/italian_controller.h
-        src/utility/utility.h
+        src/gateway.c
+        src/headers/gateway.h
+        src/controller/english_controller.c
+        src/controller/italian_controller.c
+        src/headers/controller_headers/english_controller.h
+        src/headers/controller_headers/italian_controller.h
+        src/headers/utility.h
         src/utility/utility.c)
 
 target_link_libraries(pure_c_server ws2_32)
