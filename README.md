@@ -1,4 +1,9 @@
-Lo scopo di questo progetto è quello di creare un server RESTFul in puro C.
-Tutte le scelte sono fatte affinchè si possa imparare come funzioni un server dietro le quinte e senza
-l'aiuto di nessun framework. 
-Per la lettura di questo progetto partire dal main in src/server.c. 
+# PURE C SERVER
+
+The purpose of this project is to create a RESTFul server in pure C.
+All choices have been made so that you can learn how a server works behind the scenes and without
+the help of any framework.
+
+## How it works
+
+![](How_it_works.svg)
