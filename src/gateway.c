@@ -1,9 +1,9 @@
-#include "headers/gateway.h"
+#include "../headers/gateway.h"
 #include <stdio.h>
 #include <winsock2.h>
-#include "headers/controller_headers/english_controller.h"
-#include "headers/controller_headers/italian_controller.h"
-#include "headers/utility.h"
+#include "../headers/controller_headers/english_controller.h"
+#include "../headers/controller_headers/italian_controller.h"
+#include "../headers/utility.h"
 
 
 /*

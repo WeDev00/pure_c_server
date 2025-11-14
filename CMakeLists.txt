@@ -5,12 +5,12 @@ set(CMAKE_C_STANDARD 11)
 
 add_executable(pure_c_server src/server.c
         src/gateway.c
-        src/headers/gateway.h
+        headers/gateway.h
         src/controller/english_controller.c
         src/controller/italian_controller.c
-        src/headers/controller_headers/english_controller.h
-        src/headers/controller_headers/italian_controller.h
-        src/headers/utility.h
+        headers/controller_headers/english_controller.h
+        headers/controller_headers/italian_controller.h
+        headers/utility.h
         src/utility/utility.c)
 
 target_link_libraries(pure_c_server ws2_32)

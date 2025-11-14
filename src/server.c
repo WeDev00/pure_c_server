@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <winsock2.h>
-#include "headers/gateway.h"
+#include "../headers/gateway.h"
 
 
 /**
