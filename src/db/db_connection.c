@@ -15,11 +15,11 @@ DBConnection *db_connect(const char *conninfo) {
         /*
          * Affinchè la connessione vada a buon fine, il server di DB deve essere avviato
          * Per avviarlo, runnare il comando
-& "C:\Program Files\PostgreSQL\{version}\bin\pg_ctl.exe" start -D "C:\Program Files\PostgreSQL\{version}\data" -w
-         * su PowerShell, dove "version" è la versione di postgreSQL installata Per
-         * stopparlo runnare
-         * "& "C:\Program Files\PostgreSQL\{version}\bin\pg_ctl.exe" stop -D "C:\Program
-         * Files\PostgreSQL\{version}\data" -w" sempre su PowerShell
+         * Start-Service -Name postgresql-x64-{version}
+         * su PowerShell ESEGUITA COME AMMINISTRATORE, dove "version" è la versione di postgreSQL installata
+         * Per stopparlo runnare
+         * Stop-Service -Name postgresql-x64-{version}
+         * sempre su PowerShell
          *
          * In alternativa, si può modificare il CMakeList per aggiungere un comando
          * add_custom_command(TARGET pure_c_server POST_BUILD
