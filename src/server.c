@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <winsock2.h>
+#include "../headers/db/db_connection.h"
 #include "../headers/gateway.h"
 
 
@@ -31,6 +32,17 @@ int main(void) {
     struct sockaddr_in server;
     // indica semplicemente il port scelto
     int port = 8080;
+
+
+    // variabile che contiene le info di connessione al server di database locale
+    const char *conninfo =
+            "host=localhost port=5432 dbname=pure_c_server_db user=pure_c_server_db password=pure_c_server_db";
+    // ci connettiamo al db e verifichiamo che la connessione sia andata a buon fine
+    DBConnection *db = db_connect(conninfo);
+    if (!db) {
+        fprintf(stderr, "Impossible connettere al DB: abort.\n");
+        return 1;
+    }
 
     /*
      * la funzione WSAStartup inizializza la libreria e popola la variabile wsa.
@@ -154,5 +166,7 @@ int main(void) {
     closesocket(socketReference);
     // termina la libreria e svuota sockaddr_in
     WSACleanup();
+    // disconnette il server dal db
+    db_disconnect(db);
     return 0;
 }
