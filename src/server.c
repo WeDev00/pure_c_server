@@ -3,97 +3,93 @@
 #include "../headers/db/db_connection.h"
 #include "../headers/gateway.h"
 
-
 /**
- * questa è la funzione principale che deve inizializzare il socket
- * usando le API di windows per l'utilizzo delle reti di sistema
+ * this is the main function that must initialize the socket
+ * using the Windows APIs for system network usage
  *
- * Essendo questo un 'server' che girerà su windows 11, dobbiamo usare winsock. Fosse stato un
- * server su linux, avremmo dovuto usare API posix
+ * Since this is a 'server' that will run on Windows 11, we need to use winsock. Had it been a
+ * server on Linux, we would have had to use POSIX APIs
  * @return 0
  */
 int main(void) {
     /*
-    WSDATA viene da winsock ed è una struttura dati che racchiude diverse informazioni
-    sull'implementazione di winsock attualmente in uso.
-    Fin quando questa variabile non verrà popolata, non sarà possibile usare nessuna funzione di networking di windows
-    */
+     * WSADATA comes from winsock and is a data structure that contains various information
+     * about the winsock implementation currently in use.
+     * Until this variable is populated, it will not be possible to use any
+     * Windows networking function
+     */
     WSADATA wsa;
 
     /*
-     * SOCKET è un typedef che rappresenta un descrittore di un socket
-     * (cioè un canale di comunicazione di rete via TCP/IP).
-     * di fatto è un numero che la libreria di windows usa per
-     * identificare la struttura che gestisce le connessioni di rete
+     * SOCKET is a typedef that represents a socket descriptor
+     * (that is, a network communication channel via TCP/IP).
+     * in fact, it is a number that the Windows library uses to
+     * identify the structure that manages network connections
      */
     SOCKET socketReference;
 
-    // Struttura che contiene le informazioni di indirizzo e porta del server.
+    // Structure containing the server address and port information.
     struct sockaddr_in server;
-    // indica semplicemente il port scelto
+    // simply indicates the selected port
     int port = 8080;
 
 
-    // variabile che contiene le info di connessione al server di database locale
+    // variable containing connection information to the local database server
     const char *conninfo =
             "host=localhost port=5432 dbname=pure_c_server_db user=pure_c_server_db password=pure_c_server_db";
-    // ci connettiamo al db e verifichiamo che la connessione sia andata a buon fine
+    // We connect to the database and verify that the connection was successful.
     DBConnection *db = db_connect(conninfo);
     if (!db) {
-        fprintf(stderr, "Impossible connettere al DB: abort.\n");
+        fprintf(stderr, "Unable to connect to the database: abort.\n");
         return 1;
     }
 
     /*
-     * la funzione WSAStartup inizializza la libreria e popola la variabile wsa.
-     * Se questa funzione incontra qualche errore, ritorna un valore diverso da zero
+     * the WSAStartup function initializes the library and populates the wsa variable.
+     * If this function encounters any error, it returns a non-zero value
      */
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
         printf("Failed. Error Code : %d", WSAGetLastError());
         return 1;
     }
 
-
     /*
-     * la funzione socket() crea (a livello di kernel) un nuovo socket TCP usando IpV4.
-     * se incontra qualche errore, ritorna il valore costante INVALID_SOCKET.
-     * I parametri che accetta sono:
-     * 1. af (Address Family) : AF:_INET indica ipv4, mentre AF_INET6 indica ipv6
-     * 2. type: specifica il tipo di comunicazione SOCK_STREAM → Connessione (TCP): canale affidabile e continuo tra due
-     * endpoint. SOCK_DGRAM → Datagrammi (UDP): consente l’invio di pacchetti singoli. 3.protocol: Indica il protocollo
-     * specifico da usare: IPPROTO_TCP → Usa il protocollo TCP IPPROTO_UDP → Usa UDP 0 → Se il valore è 0, il sistema
-     * operativo sceglierà automaticamente il protocollo “default” della combinazione af e type dati.
+     * the socket() function creates (at kernel level) a new TCP socket using IPv4.
+     * if it encounters any error, it returns the constant value INVALID_SOCKET.
+     * The parameters it accepts are:
+     * 1. af (Address Family): AF_INET indicates IPv4, while AF_INET6 indicates IPv6
+     * 2. type: specifies the type of communication SOCK_STREAM → Connection (TCP): reliable and continuous channel
+     * between two endpoints. SOCK_DGRAM → Datagrams (UDP): allows sending individual packets. 3. protocol: Indicates
+     * the specific protocol to use: IPPROTO_TCP → Uses the TCP protocol IPPROTO_UDP → Uses UDP 0 → If the value is 0,
+     * the operating system will automatically choose the "default" protocol for the given af and type combination.
      */
     if ((socketReference = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         printf("Could not create socket : %d", WSAGetLastError());
         return 1;
     }
 
-
     /*
-     * Prepara la struttura sockaddr_in, quindi memorizziamo le decisioni che abbiamo preso nella
-     * chiamata a "socket()" nella struttura server
-     * sin_family indica "Socket INternal family, indica la famiglia di indirizzi (in questo caso IPV4)
-     * sin_address indica l'indirizzo IP che avrà il server
-     * sin_port indica il port su cui il server attenderà le chiamate http
+     * Prepares the sockaddr_in structure, so we store the decisions we made in the
+     * call to "socket()" in the server structure
+     * sin_family indicates "Socket INternal family", indicates the address family (in this case IPv4)
+     * sin_addr indicates the IP address that the server will have
+     * sin_port indicates the port on which the server will wait for HTTP calls
      */
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr =
-            inet_addr("127.0.0.1"); // indirizzo raggiungibile solo in locale, dalla stessa macchina su cui viene
-                                    // avviato il server, in altri casi bisognerebbe mettere un indirizzo ip
-                                    // appartenente alla macchina che fa girare il server
+    server.sin_addr.s_addr = inet_addr("127.0.0.1"); // address reachable only locally, from the same machine on which
+                                                     // the server is started, in other cases you would need to put an
+                                                     // IP address belonging to the machine running the server
     server.sin_port = htons(port);
 
-
     /*
-     * la funzione bind è fondamentale per legare le informazioni che abbiamo messo in "server"
-     * al riferimento al socket che abbiamo creato; ha bisogno di:
-     * 1. il riferimento al socket
-     * 2. il puntatore all'area di memoria dove sono storate le info sul server
-     * 3. dimensioni della struttura che contiene le info sul server
+     * the bind function is essential to bind the information we have put in "server"
+     * to the reference to the socket we created; it needs:
+     * 1. the reference to the socket
+     * 2. the pointer to the memory area where the server info is stored
+     * 3. size of the structure that contains the server info
      *
-     * Dopo questa operazione il socket smette di essere solo una "porta" potenziale e diventa
-     * una vera e propria porta legata ad un indirizzo ip, quindi adesso può funzionare correttamente
+     * After this operation the socket stops being just a potential "port" and becomes
+     * a real port bound to an IP address, so now it can work correctly
      */
     if (bind(socketReference, (struct sockaddr *) &server, sizeof(server)) == SOCKET_ERROR) {
         printf("Bind failed with error code : %d", WSAGetLastError());
@@ -102,53 +98,51 @@ int main(void) {
         return 1;
     }
 
-    printf("Server in ascolto sulla porta %d all'indirizzo %s \n", ntohs(server.sin_port), inet_ntoa(server.sin_addr));
-
+    printf("Server listening on port %d at address %s \n", ntohs(server.sin_port), inet_ntoa(server.sin_addr));
 
     /*
-     * imposta il socket in listen, dove 3 è la grandezza della queue che può contenere delle richieste in attesa
-     * che quelle in elaborazione finiscano.
-     * Cambia lo stato del socket, marcandolo come “passivo” (non inizia connessioni, ma le accetta).
-     * Costruisce una coda di richieste di connessione: le connessioni in arrivo vengono accodate, e il server può poi
-     * accettarle una alla volta con accept. Non accetta ancora alcun client: mette solo il server “pronto ad
-     * ascoltare”.
+     * sets the socket to listen, where 3 is the size of the queue that can hold pending requests
+     * waiting for those being processed to finish.
+     * Changes the socket state, marking it as "passive" (does not initiate connections, but accepts them).
+     * Builds a queue of connection requests: incoming connections are queued, and the server can then
+     * accept them one at a time with accept. It does not yet accept any client: it only puts the server "ready to
+     * listen".
      */
     listen(socketReference, 3);
 
-    // variabile dello stesso tipo di 'server', contiene informazioni tipo indirizzo ip e port del client che farà la
-    // richiesta
+    // variable of the same type as ‘server’, contains information such as the IP address and port of the client making
+    // the request
     struct sockaddr_in client;
-    // memorizza la grandezza della variabile client, in termini di byte
+    // stores the size of the client variable in bytes
     int client_len = sizeof(client);
     int requestsCount = 0;
     while (1) {
         /*
-         la funzione "accept" serve ad accettare la prima richiesta presente nella coda di ascolto
-         Crea un nuovo socket che verrà usato per la comunicazione con il client; Ritorna il numero usato da windows per
-         identificare questo canale di comunicazione a livello hardware.
-         I parametri accettati sono:
-         1. socketReference = riferimento di windows al socket del server da cui estrarre la richiesta
-            (in altre parole, la coda da cui estrarre la richiesta)
-         2. il puntatore all'area di memoria dedicata al client, che verrà riempita con le informazioni del tipo
-         socketaddr_in
-         3. la dimensione dell'area di memoria dedicata, che verrà eventualmente manipolata per essere riallocata in
-         caso di spazio insufficiente
+         the "accept" function is used to accept the first request present in the listening queue
+         It creates a new socket that will be used for communication with the client; It returns the number used by
+         Windows to identify this communication channel at the hardware level. The accepted parameters are:
+         1. socketReference = Windows reference to the server socket from which to extract the request
+            (in other words, the queue from which to extract the request)
+         2. the pointer to the memory area dedicated to the client, which will be filled with information of type
+         sockaddr_in
+         3. the size of the dedicated memory area, which will possibly be manipulated to be reallocated in
+         case of insufficient space
 
-         In caso di errore ritorna la costante INVALID_SOCKET
+         In case of error it returns the constant INVALID_SOCKET
          */
         SOCKET client_socket = accept(socketReference, (struct sockaddr *) &client, &client_len);
         if (client_socket == INVALID_SOCKET) {
-            printf("Errore nell'accettazione della connessione.\n");
+            printf("Error accepting connection.\n");
             closesocket(socketReference);
             WSACleanup();
             return 1;
         }
         /*
-         In caso di connessione andata a buon fine, stampiamo:
-         1.L'indirizzo ip del client, convertito in stringa da inet_ntoa
-         2.Il port usato dal client convertito in numero da ntohs
+         In case of successful connection, we print:
+         1. The client's IP address, converted to string by inet_ntoa
+         2. The port used by the client converted to number by ntohs
          */
-        printf("Connessione accettata da %s:%d\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
+        printf("Connection accepted by %s:%d\n", inet_ntoa(client.sin_addr), ntohs(client.sin_port));
         requestsCount++;
 
         route_request(client_socket, client, client_len);
@@ -157,16 +151,16 @@ int main(void) {
             break;
     }
 
-    printf("Digita INVIO per chiudere il server\n");
-    // funzione che aspetta un input da tastiera, fino a quando non lo riceve "blocca" l'esecuzione, simulando
-    // l'accensione del server e la messa in attesa
+    printf("Press ENTER to close the server.\n");
+    // function that waits for keyboard input, until it receives it "blocks" the execution, simulating
+    // the server startup and waiting state
     getchar();
 
 
     closesocket(socketReference);
-    // termina la libreria e svuota sockaddr_in
+    // terminate the library and empty sockaddr_in
     WSACleanup();
-    // disconnette il server dal db
+    // disconnects the server from the database
     db_disconnect(db);
     return 0;
 }

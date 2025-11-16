@@ -3,8 +3,8 @@
 
 #include <libpq-fe.h>
 
-/* creiamo un tipo "DBConnection" che identifica un puntatore alla connessione
- * dove PGconn è proprio un tipo di libpq-fe che identifica una connessione
+/* create a "DBConnection" type that identifies a pointer to the connection
+ * where PGconn is a libpq-fe type that identifies a connection
  */
 typedef struct {
     PGconn *conn;
@@ -19,15 +19,15 @@ typedef struct {
        +--> struct DBConnection
                 |
                 +--> PGconn* conn
-Funzione che serve a connetterci al server di db partendo dalle conninfo
+Function used to connect to the database server starting from conninfo
  */
 
 DBConnection *db_connect(const char *conninfo);
 
-// serve a chiudere la connessione con il db
+// used to close the connection to the database
 void db_disconnect(DBConnection *db);
 
-// serve a verificare che il db sia OK: ritorna 1 in questo caso, 0 altrimenti
+// used to verify that the database is OK: returns 1 in this case, 0 otherwise
 int db_is_ok(DBConnection *db);
 
 #endif

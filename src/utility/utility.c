@@ -9,7 +9,7 @@ char *readHeaders(SOCKET client) {
     char buf[4096];
     char *requestReadDataBuffer = calloc(HEADERS_BUFFER_CAPACITY, sizeof(char));
     if (!requestReadDataBuffer) {
-        printf("Errore: impossibile allocare memoria per la lettura degli header\n");
+        printf("Error: unable to allocate memory for reading headers\n");
         return NULL;
     }
 
@@ -32,7 +32,7 @@ char *readHeaders(SOCKET client) {
                 int header_len = (int) ((header_end - requestReadDataBuffer) + 4);
                 char *header_only = malloc(header_len + 1);
                 if (!header_only) {
-                    printf("Errore: malloc fallita per header_only\n");
+                    printf("Error: malloc failed for header_only\n");
                     free(requestReadDataBuffer);
                     return NULL;
                 }
@@ -41,7 +41,7 @@ char *readHeaders(SOCKET client) {
                 while (consumed < header_len) {
                     int r = recv(client, header_only + consumed, header_len - consumed, 0);
                     if (r <= 0) {
-                        printf("Errore durante la lettura effettiva degli header\n");
+                        printf("Error while reading headers\n");
                         free(requestReadDataBuffer);
                         free(header_only);
                         return NULL;
@@ -72,11 +72,11 @@ char *readHeaders(SOCKET client) {
 int extractContentLenght(const char *headers) {
     const char *cl_header = strstr(headers, "Content-Length:");
     if (!cl_header) {
-        printf("Nessun Content-Length trovato, nessun body da leggere.\n");
+        printf("No Content-Length found, no body to read.\n");
         return -1;
     }
 
-    // Estrarre il valore numerico
+    // Extract the numeric value
     int contentLength = 0;
     if (sscanf(cl_header, "Content-Length: %d", &contentLength) != 1 || contentLength <= 0) {
         printf("Content-Length non valido.\n");
@@ -92,17 +92,17 @@ char *extractHeaderInfo(const char *headers) {
     char *headerInfo = malloc(info_len + 1);
     memcpy(headerInfo, headers, info_len);
     headerInfo[info_len] = '\0';
-    printf("Info utili %s\n-----------------------------------------------\n\n\n", headerInfo);
+    printf("Useful information %s\n-----------------------------------------------\n\n\n", headerInfo);
     return headerInfo;
 }
 
 /*
- * affinchè le seguenti 2 funzioni funzionino correttamente, devono essere chiamate in ordine
- * di definizione, questo perchè il metodo usato (strtok) ritorna:
- * 1. Alla prima chiamata, la prima stringa trovata nel parametro in input (l'header nel nostro caso) fino al
- *    terminatore specificato (lo spazio nel nostro caso)
- * 2. Dalla seconda all'n-esima chiamata, ritorna l'n-esima occorrenza nel char* passato alla PRIMA chiamata (infatti
- *    nelle successive usa NULL) fino al separatore
+ * for the following 2 functions to work correctly, they must be called in order
+ * of definition, this is because the method used (strtok) returns:
+ * 1. On the first call, the first string found in the input parameter (the header in our case) up to the
+ *    specified terminator (the space in our case)
+ * 2. From the second to the n-th call, it returns the n-th occurrence in the char* passed to the FIRST call (in fact
+ *    in subsequent calls it uses NULL) up to the separator
  */
 char *extractHttpMethod(char *headers) { return strtok(headers, " "); }
 
@@ -117,7 +117,7 @@ char *readBody(SOCKET client, int contentLength) {
     char *requestReadDataBuffer = calloc(BODY_BUFFER_CAPACITY + 1, sizeof(char));
 
     if (!requestReadDataBuffer) {
-        printf("Errore: impossibile allocare memoria per la lettura del body");
+        printf("Error: unable to allocate memory for reading the body");
         return NULL;
     }
 

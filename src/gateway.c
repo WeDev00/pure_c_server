@@ -5,34 +5,33 @@
 #include "../headers/controller_headers/italian_controller.h"
 #include "../headers/utility.h"
 
-
 /*
- * questo definisce una funzione generica, che verrà in futuro
- * identificata dalla parola "ControllerFn".
- * La funzione ritorna void e prende in input due parametri, un socket e un char*
+ * this defines a generic function, which will eventually
+ * be identified by the word "ControllerFn".
+ * The function returns void and takes two parameters as input, a socket and a char*
  */
 typedef void (*ControllerFn)(SOCKET, const char *, const char *, int);
 
-// qui stiamo definendo il tipo "Route", composto da una stringa path e una funzione handler (controllerSwitch) che
-// ritornerà void e che avrà l'obiettivo di switchare la chiamata al metodo del controller designato
+// here we are defining the "Route" type, composed of a string path and a handler function (controllerSwitch) that
+// will return void and will have the objective of switching the call to the designated controller method
 typedef struct {
     const char *path;
     ControllerFn controllerSwitch;
 } Route;
 
 Route routes[] = {
-        {"/english", englishControllerSwitch}, // stiamo legando il path "/english" alla funzione routeEnglishRequest
-                                               // del controller "english_controller"
+        {"/english", englishControllerSwitch}, // we are binding the path "/english" to the routeEnglishRequest function
+                                               // of the "english_controller" controller
+
         {"/italian", italianControllerSwitch},
 };
 
-
-/*prende in input:
- * 1. il client che ha fatto la richiesta GIA' accettata dal server
- * 2. l'indirizzo del client
- * 3. la grandezza della variabile che contiene l'indirizzo
+/*takes as input:
+ * 1. the client that made the request ALREADY accepted by the server
+ * 2. the client's address
+ * 3. the size of the variable that contains the address
  *
- * Ha come obiettivo quello di selezionare il controller che dovrà occuparsi di questa richiesta
+ * Its objective is to select the controller that will handle this request
  */
 int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
 
@@ -41,13 +40,13 @@ int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
     char *headers = readHeaders(client);
 
     if (headers == NULL) {
-        printf("Errore nella lettura dell'header\n");
+        printf("Error reading header\n");
         return -1;
     }
-    /* stampa il contenuto ricevuto (fino agli header) per diagnosi; %.*s limita l’output ai soli
-     * ‘total’ byte validi dell’accumulatore.
+    /* prints the received content (up to the headers) for diagnostics; %.*s limits the output to only
+     * 'total' valid bytes of the accumulator.
      */
-    printf("Header ricevuto:\n%.*s", HEADERS_BUFFER_CAPACITY, headers);
+    printf("Header received:\n%.*s", HEADERS_BUFFER_CAPACITY, headers);
 
     int contentLenght = extractContentLenght(headers);
     char *headerInfo = extractHeaderInfo(headers);
@@ -76,20 +75,20 @@ int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
             // continua comunque alla chiusura
         } else {
             /*
-             * Shutdown fa in modo che il kernel invii prima tutti i dati nel buffer
-             * di invio, subito dopo invia un flag FIN al client, che dice al client
-             * "Non invierò più dati". In questo modo, la connessione con il client viene
-             * chiusa DOPO l'invio di tutti i dati, non MENTRE i dati vengono mandati
+             * Shutdown ensures that the kernel sends all data in the send buffer first,
+             * immediately after it sends a FIN flag to the client, which tells the client
+             * "I will not send any more data". This way, the connection with the client is
+             * closed AFTER all data has been sent, not WHILE the data is being sent
              */
             shutdown(client, SD_SEND);
             char tmp[128];
-            recv(client, tmp, sizeof(tmp), 0); // legge eventuale ACK o close
+            recv(client, tmp, sizeof(tmp), 0); // read ACK or close if necessary
         }
     }
-    // chiude il socket di comunicazione con il client
+    // closes the communication socket with the client
     closesocket(client);
 
-    // libera memoria allocata
+    // free allocated memory
     free(headerInfo);
 
     return 0;

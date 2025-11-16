@@ -4,12 +4,12 @@
 #include "../../headers/utility.h"
 
 typedef void (*EndpointFn)(SOCKET client,
-                           int contentLength); // definizione (puntatore a) funzione che gestisce la singola richiesta
+                           int contentLength); // definition (pointer to) function that handles the single request
 
 typedef struct {
     const char *method; // "GET", "POST", ecc.
     const char *path; // "/english/hello" ecc.
-    EndpointFn handler; // funzione che risponde
+    EndpointFn handler; // function that responds
 } Endpoint;
 
 void replyWorldRequest(SOCKET client, int contentLength) {}
