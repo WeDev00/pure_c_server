@@ -1,22 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-
+#include "../../headers/controller_headers/generic_controller.h"
 #include "../../headers/utility.h"
 
-typedef void (*EndpointFn)(SOCKET client,
-                           int contentLength); // definition (pointer to) function that handles the single request
-
-typedef struct {
-    const char *method; // "GET", "POST", ecc.
-    const char *path; // "/english/hello" ecc.
-    EndpointFn handler; // function that responds
-} Endpoint;
-
-void replyWorldRequest(SOCKET client, int contentLength) {}
-
-void replyHomeRequest(SOCKET client, int contentLength) {}
-
-void replyHomePostRequest(SOCKET client, int contentLength) {
+void create(SOCKET client, int contentLength, int UUID) {
     char *body = readBody(client, contentLength);
 
     printf("BODY LETTO:\n%.*s", contentLength, body);
@@ -28,20 +15,28 @@ void replyHomePostRequest(SOCKET client, int contentLength) {
     send(client, resp, (int) strlen(resp), 0);
 }
 
-// Definizione endpoints
+void read(SOCKET client, int contentLength, int UUID) {}
+
+void update(SOCKET client, int contentLength, int UUID) {}
+
+void delete(SOCKET client, int contentLength, int UUID) {}
+
+// endpoints definitions
 static Endpoint endpoints[] = {
-        {"GET", "/english/world", replyWorldRequest},
-        {"GET", "/english/home", replyHomeRequest},
-        {"POST", "/english/home", replyHomePostRequest},
+        {"POST", "/english", create},
+        {"GET", "/english", read},
+        {"PUT", "/english", update},
+        {"DELETE", "/english", delete},
 };
 
 
-void englishControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLenght) {
+void englishControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLength) {
     int handled = 0;
+    int UUID = 0; // TO-DO: replace with extractUUID
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
         if (strcmp(method, endpoints[i].method) == 0 &&
             strncmp(path, endpoints[i].path, strlen(endpoints[i].path)) == 0) {
-            endpoints[i].handler(client, contentLenght);
+            endpoints[i].handler(client, contentLength, UUID);
             handled = 1;
             break;
         }

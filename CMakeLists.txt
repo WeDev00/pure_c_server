@@ -13,6 +13,7 @@ add_executable(pure_c_server src/server.c
         headers/controller_headers/italian_controller.h
         headers/utility.h
         src/utility/utility.c
-        src/db/db_connection.c)
+        src/db/db_connection.c
+        headers/controller_headers/generic_controller.h)
 
 target_link_libraries(pure_c_server ws2_32 libpq)
