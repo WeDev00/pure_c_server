@@ -7,12 +7,12 @@
 void create(SOCKET client, int contentLength, int UUID) {
     char *body = readBody(client, contentLength);
 
-    printf("BODY LETTO:\n%.*s", contentLength, body);
+    printf("READ BODY:\n%.*s", contentLength, body);
 
     const char *resp = "HTTP/1.1 200 OK\r\n"
                        "Content-Type: text/plain\r\n"
                        "Connection: close\r\n\r\n"
-                       "Body ricevuto gg bro";
+                       "Body received gg bro";
     send(client, resp, (int) strlen(resp), 0);
 }
 
@@ -29,14 +29,14 @@ Endpoint endpoints[] = {
         {"DELETE", "/italian", delete},
 };
 
-void italianControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLenght) {
+void italianControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLength) {
 
     int handled = 0;
     int UUID = 0; // TO-DO: replace with extractUUID
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
         if (strncmp(path, endpoints[i].path, strlen(endpoints[i].path)) == 0 &&
             strncmp(method, endpoints[i].method, strlen(endpoints[i].method)) == 0) {
-            endpoints[i].handler(client, contentLenght, UUID);
+            endpoints[i].handler(client, contentLength, UUID);
             handled = 1;
             break;
         }
