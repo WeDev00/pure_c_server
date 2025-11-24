@@ -140,3 +140,32 @@ char *readBody(SOCKET client, int contentLength) {
     free(requestReadDataBuffer);
     return NULL;
 }
+
+/*
+ * The following function aims to find the exact match with the endpoints for managing dynamic parameters such as
+ * “{id}”; it takes the following inputs:
+ * 1. the path arrived in the request
+ * 2. the path defined in the endpoint
+ * 3. any UUID that needs to be extractedThe function returns the path that matches the input UUID
+ */
+int matchEndpoint(const char *path, const char *pathPattern, int *outUUID) {
+    // find the first reference to the {id} part
+    const char *placeholder = strstr(pathPattern, "{id}");
+    if (placeholder) { // if a reference was found
+        int prefixLen = placeholder - pathPattern; // extract the part before the id
+
+        if (strncmp(path, pathPattern, prefixLen) !=
+            0) // if the arrived path doesn't match the endpoint path before the dynamic parameter
+                return 0; // return false
+
+        const char *idStr = path + prefixLen; // extract the id
+        if (*idStr == '\0') // if id isn't found
+            return 0; // return false
+
+        *outUUID = atoi(idStr); // save the id in the variable
+        return 1; // return true
+    }
+
+    // if no dynamic parameter is found, return the classic match
+    return strcmp(path, pathPattern) == 0;
+}

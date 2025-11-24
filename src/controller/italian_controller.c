@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <winsock.h>
 #include "../../headers/controller_headers/generic_controller.h"
 
 
-void create(SOCKET client, int contentLength, int UUID) {
+static void create(SOCKET client, int contentLength, int UUID) {
     char *body = readBody(client, contentLength);
 
     printf("READ BODY:\n%.*s", contentLength, body);
@@ -16,26 +15,26 @@ void create(SOCKET client, int contentLength, int UUID) {
     send(client, resp, (int) strlen(resp), 0);
 }
 
-void read(SOCKET client, int contentLength, int UUID) {}
+static void read(SOCKET client, int contentLength, int UUID) {}
 
-void update(SOCKET client, int contentLength, int UUID) {}
+static void readAll(SOCKET client, int contentLength, int UUID) {}
 
-void delete(SOCKET client, int contentLength, int UUID) {}
+static void update(SOCKET client, int contentLength, int UUID) {}
 
-Endpoint endpoints[] = {
-        {"POST", "/italian", create},
-        {"GET", "/italian", read},
-        {"PUT", "/italian", update},
-        {"DELETE", "/italian", delete},
+static void delete(SOCKET client, int contentLength, int UUID) {}
+
+static Endpoint endpoints[] = {
+        {"POST", "/italian", create}, {"GET", "/italian", readAll},   {"GET", "/italian/{id}", read},
+        {"PUT", "/italian", update},  {"DELETE", "/italian", delete},
 };
 
 void italianControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLength) {
 
     int handled = 0;
-    int UUID = 0; // TO-DO: replace with extractUUID
+    int UUID = 0;
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
         if (strncmp(path, endpoints[i].path, strlen(endpoints[i].path)) == 0 &&
-            strncmp(method, endpoints[i].method, strlen(endpoints[i].method)) == 0) {
+            matchEndpoint(path, endpoints[i].path, &UUID)) {
             endpoints[i].handler(client, contentLength, UUID);
             handled = 1;
             break;
