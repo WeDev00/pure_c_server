@@ -1,9 +1,9 @@
 #include "../headers/gateway.h"
 #include <stdio.h>
 #include <winsock2.h>
-#include "../headers/controller_headers/english_controller.h"
-#include "../headers/controller_headers/italian_controller.h"
-#include "../headers/utility.h"
+#include "../headers/controller/english_controller.h"
+#include "../headers/controller/italian_controller.h"
+#include "../headers/utility/utility.h"
 
 /*
  * this defines a generic function, which will eventually
@@ -37,27 +37,27 @@ int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
 
     printf("-----------------------------------------------\n");
 
-    char *headers = readHeaders(client);
+    char *requestHeaders = readHeaders(client);
 
-    if (headers == NULL) {
+    if (requestHeaders == NULL) {
         printf("Error reading header\n");
         return -1;
     }
     /* prints the received content (up to the headers) for diagnostics; %.*s limits the output to only
      * 'total' valid bytes of the accumulator.
      */
-    printf("Header received:\n%.*s", HEADERS_BUFFER_CAPACITY, headers);
+    printf("Header received:\n%.*s", HEADERS_BUFFER_CAPACITY, requestHeaders);
 
-    int contentLenght = extractContentLenght(headers);
-    char *headerInfo = extractHeaderInfo(headers);
-    free(headers);
-    char *method = extractHttpMethod(headerInfo);
-    char *path = extractPath(headerInfo);
+    int requestBodyContentLenght = extractContentLenght(requestHeaders);
+    char *headerInfo = extractHeaderInfo(requestHeaders);
+    free(requestHeaders);
+    char *requestMethod = extractHttpMethod(headerInfo);
+    char *requestPath = extractPath(headerInfo);
 
     int handled = 0;
     for (int i = 0; i < sizeof(routes) / sizeof(Route); i++) {
-        if (strncmp(path, routes[i].path, strlen(routes[i].path)) == 0) {
-            routes[i].controllerSwitch(client, path, method, contentLenght);
+        if (strncmp(requestPath, routes[i].path, strlen(routes[i].path)) == 0) {
+            routes[i].controllerSwitch(client, requestPath, requestMethod, requestBodyContentLenght);
             handled = 1;
             break;
         }

@@ -1,7 +1,7 @@
 #ifndef GENERIC_CONTROLLER_H
 #define GENERIC_CONTROLLER_H
 
-#include "../../headers/utility.h" // for SOCKET
+#include "../utility/utility.h"
 
 typedef void (*EndpointFn)(SOCKET client, int contentLength, int UUID);
 

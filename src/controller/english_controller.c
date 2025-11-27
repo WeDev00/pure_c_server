@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "../../headers/controller_headers/generic_controller.h"
-#include "../../headers/utility.h"
+#include "../../headers/controller/generic_controller.h"
+#include "../../headers/utility/utility.h"
 
 static void create(SOCKET client, int contentLength, int UUID) {
     char *body = readBody(client, contentLength);

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <winsock2.h>
-#include "../headers/db/db_connection.h"
+#include "../headers/db/db.h"
 #include "../headers/gateway.h"
 
 /**
@@ -38,8 +38,7 @@ int main(void) {
     const char *conninfo =
             "host=localhost port=5432 dbname=pure_c_server_db user=pure_c_server_db password=pure_c_server_db";
     // We connect to the database and verify that the connection was successful.
-    DBConnection *db = db_connect(conninfo);
-    if (!db) {
+    if (db_connect(conninfo) != 0) {
         fprintf(stderr, "Unable to connect to the database: abort.\n");
         return 1;
     }
@@ -161,6 +160,6 @@ int main(void) {
     // terminate the library and empty sockaddr_in
     WSACleanup();
     // disconnects the server from the database
-    db_disconnect(db);
+    db_disconnect();
     return 0;
 }

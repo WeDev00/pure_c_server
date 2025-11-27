@@ -1,19 +1,21 @@
-#include "../../headers/db/db_connection.h"
+#include "../../headers/db/db.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-DBConnection *db_connect(const char *conninfo) {
-    // structure that will contain the connection
-    DBConnection *db = malloc(sizeof(DBConnection));
-    if (!db)
-        return NULL;
+PGconn *GLOBAL_DB_CONN = NULL;
+
+int db_connect(const char *conninfo) {
+
 
     // initialize the connection, storing the information in the conn field of DBConnection.
-    db->conn = PQconnectdb(conninfo);
+    GLOBAL_DB_CONN = PQconnectdb(conninfo);
 
-    if (PQstatus(db->conn) != CONNECTION_OK) {
+    if (PQstatus(GLOBAL_DB_CONN) != CONNECTION_OK) {
         /*
          * For the connection to succeed, the DB server must be started
+         * [The Postgres service starts automatically when the PC is turned on. To change this, simply run the
+         * services.msc command to open the Windows Services panel. Then search for postgresql-x64-{version} and go to
+         * the service properties to change the startup type from Automatic to Manual.]
          * To start it, run the command
          * Start-Service -Name postgresql-x64-{version}
          * on PowerShell RUN AS ADMINISTRATOR, where "version" is the installed postgreSQL version
@@ -34,21 +36,21 @@ DBConnection *db_connect(const char *conninfo) {
          *  To check the db server status, verify the status of the "postgresql-x64-{version}" service
          *  through "Win+R -> services.msc"
          */
-        fprintf(stderr, "[DB] Connection failed: %s\n", PQerrorMessage(db->conn));
-        PQfinish(db->conn);
-        free(db);
-        return NULL;
+        fprintf(stderr, "[DB] Connection failed: %s\n", PQerrorMessage(GLOBAL_DB_CONN));
+        PQfinish(GLOBAL_DB_CONN);
+        free(GLOBAL_DB_CONN);
+        return -1;
     }
     printf("[DB] PostgreSQL connection established.\n");
-    return db;
+    return 0;
 }
 
-void db_disconnect(DBConnection *db) {
-    if (!db)
+void db_disconnect() {
+    if (!GLOBAL_DB_CONN)
         return;
-    PQfinish(db->conn);
-    free(db);
+    PQfinish(GLOBAL_DB_CONN);
+    GLOBAL_DB_CONN = NULL;
     printf("[DB] PostgreSQL connection closed.\n");
 }
 
-int db_is_ok(DBConnection *db) { return db && db->conn && PQstatus(db->conn) == CONNECTION_OK; }
+int db_is_ok() { return GLOBAL_DB_CONN && PQstatus(GLOBAL_DB_CONN) == CONNECTION_OK; }
