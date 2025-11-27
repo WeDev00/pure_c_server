@@ -33,7 +33,7 @@ int create(const ItalianEntity *rec) {
      *    (If you want some binary parameters, you would put an array of 0/1 here.)
      * 8. result format: 0 = request to the db server to return the result in text format; 1 = binary format.
      */
-    PGresult *res = PQexecParams(conn, "INSERT INTO Italian (Greet,Kind,Length) VALUES ($1,$2,$3);", 3, NULL, params,
+    PGresult *res = PQexecParams(conn, "INSERT INTO italian (Greet,Kind,Length) VALUES ($1,$2,$3);", 3, NULL, params,
                                  NULL, NULL, 0);
 
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
