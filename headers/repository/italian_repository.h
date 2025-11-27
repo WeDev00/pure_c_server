@@ -11,9 +11,9 @@ typedef struct {
     int length;
 } ItalianEntity;
 
-int create(const ItalianEntity *rec);
-ItalianEntity *read(const char *id);
-void update(int id, ItalianEntity entity);
-int delete(const char *id);
+int italianCreate(const ItalianEntity *rec);
+ItalianEntity *italianRead(const char *id);
+void italianUpdate(int id, ItalianEntity entity);
+int italianDelete(const char *id);
 
 #endif

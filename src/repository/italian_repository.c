@@ -1,7 +1,7 @@
 #include "../../headers/repository/italian_repository.h"
 #include "../../headers/db/db.h"
 
-int create(const ItalianEntity *rec) {
+int italianCreate(const ItalianEntity *rec) {
     PGconn *conn = GLOBAL_DB_CONN;
 
     if (!conn) {
@@ -46,8 +46,8 @@ int create(const ItalianEntity *rec) {
     return 0;
 }
 
-ItalianEntity *read(const char *id) {}
+ItalianEntity *italianRead(const char *id) {}
 
-void update(int id, ItalianEntity entity) {}
+void italianUpdate(int id, ItalianEntity entity) {}
 
-int delete(const char *id) {}
+int italianDelete(const char *id) {}

@@ -14,9 +14,9 @@ typedef struct {
     int list_size;
 } EnglishEntity;
 
-int create(const EnglishEntity *rec);
-EnglishEntity *read(const char *id);
-void update(int id, EnglishEntity entity);
-int delete(const char *id);
+int englishCreate(const EnglishEntity *rec);
+EnglishEntity *englishRead(const char *id);
+void englishUpdate(int id, EnglishEntity entity);
+int englishDelete(const char *id);
 
 #endif
