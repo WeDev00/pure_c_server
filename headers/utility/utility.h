@@ -16,6 +16,6 @@ char *extractPath(char *headers);
 
 char *readBody(SOCKET client, int contentLength);
 
-int matchEndpoint(const char *path, const char *pathPattern, int *outUUID);
+int matchEndpoint(const char *path, const char *pathPattern, char *outUUID);
 
 #endif

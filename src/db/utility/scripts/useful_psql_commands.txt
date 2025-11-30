@@ -1,0 +1,3 @@
+Change db -> \c db_name
+List all tables in current db -> \dt
+List all fields in a table in current db -> \d table_name

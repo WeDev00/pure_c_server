@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "../../headers/controller/generic_controller.h"
+#include "../../headers/repository/italian_repository.h"
+#include "../../headers/service/italian_service.h"
 
 
-static void create(SOCKET client, int contentLength, int UUID) {
+static void create(SOCKET client, int contentLength, char *UUID) {
     char *body = readBody(client, contentLength);
 
     printf("READ BODY:\n%.*s", contentLength, body);
@@ -15,13 +17,26 @@ static void create(SOCKET client, int contentLength, int UUID) {
     send(client, resp, (int) strlen(resp), 0);
 }
 
-static void read(SOCKET client, int contentLength, int UUID) {}
+static void read(SOCKET client, int contentLength, char *UUID) {
+    const ItalianEntity *entity = italianServiceRead(UUID);
+    char resp[256];
+    snprintf(resp, sizeof(resp),
+             "HTTP/1.1 200 OK\r\n"
+             "Content-Type: text/plain\r\n"
+             "Connection: close\r\n\r\n"
+             "read specifica di %s\n\n"
+             "Greet: %s\n"
+             "Kind: %s\n"
+             "Length: %d\n",
+             UUID, entity->greet, entity->kind ? "true" : "false", entity->length);
+    send(client, resp, (int) strlen(resp), 0);
+}
 
-static void readAll(SOCKET client, int contentLength, int UUID) {}
+static void readAll(SOCKET client, int contentLength, char *UUID) {}
 
-static void update(SOCKET client, int contentLength, int UUID) {}
+static void update(SOCKET client, int contentLength, char *UUID) {}
 
-static void delete(SOCKET client, int contentLength, int UUID) {}
+static void delete(SOCKET client, int contentLength, char *UUID) {}
 
 static Endpoint endpoints[] = {
         {"POST", "/italian", create}, {"GET", "/italian", readAll},   {"GET", "/italian/{id}", read},
@@ -31,10 +46,18 @@ static Endpoint endpoints[] = {
 void italianControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLength) {
 
     int handled = 0;
-    int UUID = 0;
+    char *UUID = malloc(45 * sizeof(char));
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
-        if (strncmp(path, endpoints[i].path, strlen(endpoints[i].path)) == 0 &&
-            matchEndpoint(path, endpoints[i].path, &UUID)) {
+
+        const char *brace_pos = strchr(endpoints[i].path, '{');
+        size_t cmp_len;
+        if (brace_pos != NULL) {
+            cmp_len = (size_t) (brace_pos - endpoints[i].path) - 1;
+        } else {
+            cmp_len = strlen(endpoints[i].path);
+        }
+        const int isPathValid = strncmp(path, endpoints[i].path, cmp_len);
+        if (isPathValid == 0 && matchEndpoint(path, endpoints[i].path, &UUID)) {
             endpoints[i].handler(client, contentLength, UUID);
             handled = 1;
             break;
@@ -42,14 +65,18 @@ void italianControllerSwitch(const SOCKET client, const char *path, const char *
     }
 
     if (handled == 0) {
-        const char *resp = "HTTP/1.1 404 NOT_FOUND\r\n"
+        const char *resp = "HTTP/1.1 400 METHOD NOT FOUND\r\n"
                            "Content-Type: text/plain\r\n"
                            "Connection: close\r\n"
                            "\r\n"
-                           "NOT_FOUND";
+                           "BAD_REQUEST";
         if (send(client, resp, (int) strlen(resp), 0) == SOCKET_ERROR) {
             int err = WSAGetLastError();
             printf("send error: %d\n", err);
+        } else {
+            shutdown(client, SD_SEND);
+            char tmp[128];
+            recv(client, tmp, sizeof(tmp), 0); // read ACK or close if necessary
         }
     }
 }

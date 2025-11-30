@@ -85,6 +85,9 @@ int route_request(SOCKET client, struct sockaddr_in client_addr, int addrlen) {
             recv(client, tmp, sizeof(tmp), 0); // read ACK or close if necessary
         }
     }
+    shutdown(client, SD_SEND);
+    char tmp[128];
+    recv(client, tmp, sizeof(tmp), 0);
     // closes the communication socket with the client
     closesocket(client);
 

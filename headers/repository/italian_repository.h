@@ -13,7 +13,8 @@ typedef struct {
 
 int italianCreate(const ItalianEntity *rec);
 ItalianEntity *italianRead(const char *id);
-void italianUpdate(int id, ItalianEntity entity);
+ItalianEntity **italianReadAll();
+int italianUpdate(char *id, ItalianEntity entity);
 int italianDelete(const char *id);
 
 #endif

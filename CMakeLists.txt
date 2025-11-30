@@ -18,6 +18,8 @@ add_executable(pure_c_server src/server.c
         headers/repository/italian_repository.h
         headers/repository/english_repository.h
         src/repository/english_repository.c
-        src/repository/italian_repository.c)
+        src/repository/italian_repository.c
+        src/service/italian_service.c
+        headers/service/italian_service.h)
 
 target_link_libraries(pure_c_server ws2_32 libpq)

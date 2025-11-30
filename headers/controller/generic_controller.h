@@ -3,7 +3,7 @@
 
 #include "../utility/utility.h"
 
-typedef void (*EndpointFn)(SOCKET client, int contentLength, int UUID);
+typedef void (*EndpointFn)(SOCKET client, int contentLength, char *UUID);
 
 typedef struct {
     const char *method; // "GET", "POST", ecc.

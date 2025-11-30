@@ -3,7 +3,7 @@
 #include "../../headers/controller/generic_controller.h"
 #include "../../headers/utility/utility.h"
 
-static void create(SOCKET client, int contentLength, int UUID) {
+static void create(SOCKET client, int contentLength, char *UUID) {
     char *body = readBody(client, contentLength);
 
     printf("BODY LETTO:\n%.*s", contentLength, body);
@@ -15,18 +15,18 @@ static void create(SOCKET client, int contentLength, int UUID) {
     send(client, resp, (int) strlen(resp), 0);
 }
 
-static void read(SOCKET client, int contentLength, int UUID) {
+static void read(SOCKET client, int contentLength, char *UUID) {
     char resp[256];
     snprintf(resp, sizeof(resp),
              "HTTP/1.1 200 OK\r\n"
              "Content-Type: text/plain\r\n"
              "Connection: close\r\n\r\n"
-             "read specifica di id: %d",
+             "read specifica di id: %s",
              UUID);
     send(client, resp, (int) strlen(resp), 0);
 }
 
-static void readAll(SOCKET client, int contentLength, int UUID) {
+static void readAll(SOCKET client, int contentLength, char *UUID) {
     const char *resp = "HTTP/1.1 200 OK\r\n"
                        "Content-Type: text/plain\r\n"
                        "Connection: close\r\n\r\n"
@@ -34,9 +34,9 @@ static void readAll(SOCKET client, int contentLength, int UUID) {
     send(client, resp, (int) strlen(resp), 0);
 }
 
-static void update(SOCKET client, int contentLength, int UUID) {}
+static void update(SOCKET client, int contentLength, char *UUID) {}
 
-static void delete(SOCKET client, int contentLength, int UUID) {}
+static void delete(SOCKET client, int contentLength, char *UUID) {}
 
 // endpoints definitions
 static Endpoint endpoints[] = {
