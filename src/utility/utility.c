@@ -1,9 +1,23 @@
 #include "../../headers/utility/utility.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "../../headers/repository/english_repository.h"
+#include "../../headers/repository/italian_repository.h"
 
 const size_t HEADERS_BUFFER_CAPACITY = 65536;
 const size_t BODY_BUFFER_CAPACITY = 65536;
+
+static const char *HTTP_STATUS[600] = {0};
+
+static void initStatus() {
+    HTTP_STATUS[200] = "OK";
+    HTTP_STATUS[404] = "NOT_FOUND";
+    HTTP_STATUS[500] = "INTERNAL_SERVER_ERROR";
+}
+
+static const char *getStatus(int code) {
+    return (code >= 0 && code < 600 && HTTP_STATUS[code]) ? HTTP_STATUS[code] : "UNKNOWN";
+}
 
 char *readHeaders(SOCKET client) {
     char buf[4096];
@@ -168,4 +182,155 @@ int matchEndpoint(const char *path, const char *pathPattern, char **outUUID) {
 
     // if no dynamic parameter is found, return the classic match
     return strcmp(path, pathPattern) == 0;
+}
+
+static char *objectToJson(ResponseType responseType, void *object) {
+
+    if (responseType == NONE || object == NULL) {
+        return NULL;
+    }
+
+    char *json = malloc(2048 * sizeof(char));
+    json[0] = '\0';
+
+    switch (responseType) {
+        case ITALIAN_ENTITY: {
+            ItalianEntity *e = (ItalianEntity *) object;
+            snprintf(json, 2048,
+                     "{"
+                     "\"id\":\"%s\","
+                     "\"greet\":\"%s\","
+                     "\"kind\":%s,"
+                     "\"length\":%d"
+                     "}",
+                     e->id, e->greet, e->kind ? "true" : "false", e->length);
+            return json;
+        }
+        case ENGLISH_ENTITY: {
+            EnglishEntity *e = (EnglishEntity *) object;
+
+            char listBuf[512];
+            listBuf[0] = '\0';
+            strcat(listBuf, "[");
+
+            for (int i = 0; i < e->list_size; i++) {
+                char num[16];
+                snprintf(num, sizeof(num), "%d", e->listArray[i]);
+                strcat(listBuf, num);
+                if (i < e->list_size - 1)
+                    strcat(listBuf, ",");
+            }
+
+            strcat(listBuf, "]");
+
+            snprintf(json, 2048,
+                     "{"
+                     "\"id\":\"%s\","
+                     "\"greet\":\"%s\","
+                     "\"kind\":%s,"
+                     "\"length\":%d,"
+                     "\"object\":%s,"
+                     "\"list\":%s"
+                     "}",
+                     e->id, e->greet, e->kind ? "true" : "false", e->length, e->object_json ? e->object_json : "null",
+                     listBuf);
+
+            return json;
+        }
+        case ITALIAN_ENTITIES: {
+            ItalianEntity **list = (ItalianEntity **) object;
+
+            strcat(json, "[");
+
+            for (int i = 0; list[i] != NULL; i++) {
+                ItalianEntity *e = list[i];
+
+                char element[256];
+                snprintf(element, sizeof(element),
+                         "{"
+                         "\"id\":\"%s\","
+                         "\"greet\":\"%s\","
+                         "\"kind\":%s,"
+                         "\"length\":%d"
+                         "}",
+                         e->id, e->greet, e->kind ? "true" : "false", e->length);
+
+                strcat(json, element);
+
+                if (list[i + 1] != NULL)
+                    strcat(json, ",");
+            }
+
+            strcat(json, "]");
+            return json;
+        }
+        case ENGLISH_ENTITIES: {
+            EnglishEntity **list = (EnglishEntity **) object;
+
+            strcat(json, "["); // apertura array JSON
+
+            for (int i = 0; list[i] != NULL; i++) {
+                EnglishEntity *e = list[i];
+
+                // serializzazione della lista di numeri
+                char listBuf[512];
+                listBuf[0] = '\0';
+                strcat(listBuf, "[");
+                for (int j = 0; j < e->list_size; j++) {
+                    char num[16];
+                    snprintf(num, sizeof(num), "%d", e->listArray[j]);
+                    strcat(listBuf, num);
+                    if (j < e->list_size - 1)
+                        strcat(listBuf, ",");
+                }
+                strcat(listBuf, "]");
+
+                char element[512];
+                snprintf(element, sizeof(element),
+                         "{"
+                         "\"id\":\"%s\","
+                         "\"greet\":\"%s\","
+                         "\"kind\":%s,"
+                         "\"length\":%d,"
+                         "\"object\":%s,"
+                         "\"list\":%s"
+                         "}",
+                         e->id, e->greet, e->kind ? "true" : "false", e->length,
+                         e->object_json ? e->object_json : "null", listBuf);
+
+                strcat(json, element);
+
+                // aggiunge la virgola solo se non è l’ultimo elemento
+                if (list[i + 1] != NULL)
+                    strcat(json, ",");
+            }
+
+            strcat(json, "]"); // chiusura array JSON
+            return json;
+        }
+        case ERROR_MESSAGE: {
+            strcat(json, "{\n"
+                         "\"error:\""
+                         "some error occured");
+            return json;
+        }
+        default: {
+            free(json);
+            return NULL;
+        }
+    }
+}
+
+void sendResponse(SOCKET client, int httpCode, ResponseType responseType, void *object) {
+    initStatus();
+    char resp[512];
+    char *objectAsJson = objectToJson(responseType, object);
+
+    snprintf(resp, sizeof(resp),
+             "HTTP/1.1 %d %s\r\n"
+             "Content-Type: text/json\r\n"
+             "Connection: close\r\n\r\n"
+             "%s\n",
+             httpCode, getStatus(httpCode), objectAsJson == NULL ? "" : objectAsJson);
+    send(client, resp, (int) strlen(resp), 0);
 }

@@ -46,7 +46,7 @@ static Endpoint endpoints[] = {
 
 void englishControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLength) {
     int handled = 0;
-    int UUID = 0;
+    char *UUID = malloc(45 * sizeof(char));
     for (int i = 0; i < sizeof(endpoints) / sizeof(Endpoint); i++) {
         if (strcmp(method, endpoints[i].method) == 0 && matchEndpoint(path, endpoints[i].path, &UUID)) {
             endpoints[i].handler(client, contentLength, UUID);

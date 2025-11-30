@@ -138,6 +138,7 @@ ItalianEntity **italianReadAll() {
         entities[i]->kind = (PQgetvalue(res, i, 2)[0] == 't') ? 1 : 0;
         entities[i]->length = atoi(PQgetvalue(res, i, 3));
     }
+    entities[rows] = NULL;
     PQclear(res);
     return entities;
 }

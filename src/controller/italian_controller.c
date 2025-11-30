@@ -19,17 +19,7 @@ static void create(SOCKET client, int contentLength, char *UUID) {
 
 static void read(SOCKET client, int contentLength, char *UUID) {
     const ItalianEntity *entity = italianServiceRead(UUID);
-    char resp[256];
-    snprintf(resp, sizeof(resp),
-             "HTTP/1.1 200 OK\r\n"
-             "Content-Type: text/plain\r\n"
-             "Connection: close\r\n\r\n"
-             "read specifica di %s\n\n"
-             "Greet: %s\n"
-             "Kind: %s\n"
-             "Length: %d\n",
-             UUID, entity->greet, entity->kind ? "true" : "false", entity->length);
-    send(client, resp, (int) strlen(resp), 0);
+    sendResponse(client, 200, ITALIAN_ENTITY, entity);
 }
 
 static void readAll(SOCKET client, int contentLength, char *UUID) {}
