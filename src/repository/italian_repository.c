@@ -111,7 +111,7 @@ ItalianEntity *italianRead(const char *id) {
 
 ItalianEntity **italianReadAll() {
     PGconn *conn = GLOBAL_DB_CONN;
-    PGresult *res = PQexecParams(conn, "SELECT * FROM italian;", 1, NULL, NULL, NULL, NULL, 0);
+    PGresult *res = PQexecParams(conn, "SELECT * FROM italian;", 0, NULL, NULL, NULL, NULL, 0);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "[italianRead] Query error: %s\n", PQerrorMessage(conn));
