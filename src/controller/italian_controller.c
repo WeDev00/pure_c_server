@@ -30,13 +30,34 @@ static void readAll(SOCKET client, int contentLength, char *UUID) {
     sendResponse(client, 200, ITALIAN_ENTITIES, entities);
 }
 
-static void update(SOCKET client, int contentLength, char *UUID) { printf("italian/update/{id}"); }
+static void update(SOCKET client, int contentLength, char *UUID) {
+    printf("italian/update/{id}");
+    char *body = readBody(client, contentLength);
+    ItalianEntity *entity = (ItalianEntity *) jsonToObject(ITALIAN_ENTITY, body);
+    const int operationResult = italianServiceUpdate(UUID, *entity);
 
-static void delete(SOCKET client, int contentLength, char *UUID) { printf("italian/delete/{id}"); }
+    if (operationResult != 0) {
+        char *errorMessage = "Qualcosa è andato storto";
+        sendResponse(client, 500, ERROR_MESSAGE, errorMessage);
+    } else {
+        sendResponse(client, 200, ITALIAN_ENTITY, NULL);
+    }
+}
+
+static void delete(SOCKET client, int contentLength, char *UUID) {
+    printf("italian/delete/{id}");
+    const int operationResult = italianServiceDelete(UUID);
+    if (operationResult <= 0) {
+        char *errorMessage = "Qualcosa è andato storto";
+        sendResponse(client, 500, ERROR_MESSAGE, errorMessage);
+    } else {
+        sendResponse(client, 200, ITALIAN_ENTITY, NULL);
+    }
+}
 
 static Endpoint endpoints[] = {
-        {"POST", "/italian", create}, {"GET", "/italian", readAll},   {"GET", "/italian/{id}", read},
-        {"PUT", "/italian", update},  {"DELETE", "/italian", delete},
+        {"POST", "/italian", create},     {"GET", "/italian", readAll},        {"GET", "/italian/{id}", read},
+        {"PUT", "/italian/{id}", update}, {"DELETE", "/italian/{id}", delete},
 };
 
 void italianControllerSwitch(const SOCKET client, const char *path, const char *method, int contentLength) {

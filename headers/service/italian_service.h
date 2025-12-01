@@ -6,7 +6,7 @@
 int italianServiceCreate(ItalianEntity entity);
 ItalianEntity *italianServiceRead(const char *id);
 ItalianEntity **italianServiceReadAll();
-void italianServiceUpdate(char *id, ItalianEntity entity);
+int italianServiceUpdate(char *id, ItalianEntity entity);
 int italianServiceDelete(const char *id);
 
 #endif

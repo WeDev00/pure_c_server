@@ -53,21 +53,22 @@ ItalianEntity **italianServiceReadAll() {
     return entities;
 }
 
-void italianServiceUpdate(char *id, ItalianEntity entity) {
+int italianServiceUpdate(char *id, ItalianEntity entity) {
     if (id == NULL) {
         fprintf(stderr, "[SERVICE] Update failed: ID cannot be NULL\n");
-        return;
+        return -1;
     }
 
     if (!validateItalianEntity(&entity)) {
         fprintf(stderr, "[SERVICE] Update validation failed\n");
-        return;
+        return -1;
     }
 
     int result = italianUpdate(id, entity);
 
     if (result == 0)
         printf("[SERVICE] Italian updated successfully\n");
+    return result;
 }
 int italianServiceDelete(const char *id) {
     if (id == NULL) {
@@ -77,7 +78,7 @@ int italianServiceDelete(const char *id) {
 
     int result = italianDelete(id);
 
-    if (result == 0)
+    if (result > 0)
         printf("[SERVICE] Italian deleted successfully\n");
 
     return result;

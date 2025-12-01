@@ -153,7 +153,7 @@ int italianUpdate(char *id, ItalianEntity entity) {
     snprintf(length_buf, sizeof(length_buf), "%d", entity.length);
     params[2] = length_buf;
 
-    char id_buf[12];
+    char id_buf[37];
     snprintf(id_buf, sizeof(id_buf), "%s", id);
     params[3] = id_buf;
 
