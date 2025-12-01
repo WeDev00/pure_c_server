@@ -8,14 +8,14 @@
 static void create(SOCKET client, int contentLength, char *UUID) {
     printf("italian/create");
     char *body = readBody(client, contentLength);
-
-    printf("READ BODY:\n%.*s", contentLength, body);
-
-    const char *resp = "HTTP/1.1 200 OK\r\n"
-                       "Content-Type: text/plain\r\n"
-                       "Connection: close\r\n\r\n"
-                       "Body received gg bro";
-    send(client, resp, (int) strlen(resp), 0);
+    ItalianEntity *entity = (ItalianEntity *) jsonToObject(ITALIAN_ENTITY, body);
+    const int operationResult = italianServiceCreate(*entity);
+    if (operationResult == 0) {
+        sendResponse(client, 200, ITALIAN_ENTITY, NULL);
+    } else {
+        char *errorMessage = "Qualcosa è andato storto";
+        sendResponse(client, 500, ERROR_MESSAGE, errorMessage);
+    }
 }
 
 static void read(SOCKET client, int contentLength, char *UUID) {

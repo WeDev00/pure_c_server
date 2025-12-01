@@ -184,7 +184,62 @@ int matchEndpoint(const char *path, const char *pathPattern, char **outUUID) {
     return strcmp(path, pathPattern) == 0;
 }
 
-static char *objectToJson(ResponseType responseType, void *object) {
+
+static char *findNth(const char *str, char c, int n) {
+    const char *p = str;
+    int count = 0;
+
+    while (*p) {
+        if (*p == c) {
+            count++;
+            if (count == n) {
+                return (char *) p;
+            }
+        }
+        p++;
+    }
+
+    return NULL;
+}
+
+void *jsonToObject(DataType dataType, char *json) {
+
+    if (dataType == NONE || json == NULL)
+        return NULL;
+
+    switch (dataType) {
+        case ITALIAN_ENTITY: {
+            ItalianEntity *entity = malloc(sizeof(ItalianEntity));
+            memset(entity->id, '\0', sizeof(entity->id)); // setting the new ID as NULL, the db will handle this
+            char *colonPosition = findNth(json, ':', 1);
+            char *commaPosition = findNth(json, ',', 1);
+            if (colonPosition && commaPosition && commaPosition > colonPosition) {
+                colonPosition += 2; // remove colon and "
+                commaPosition--; // remove "
+                int length = commaPosition - colonPosition;
+                strncpy(entity->greet, colonPosition, length);
+                entity->greet[length] = '\0';
+                entity->length = length;
+            }
+            colonPosition = findNth(json, ':', 2);
+            commaPosition = findNth(json, ',', 2);
+            if (colonPosition && commaPosition && commaPosition > colonPosition) {
+                colonPosition++;
+                int length = commaPosition - colonPosition;
+                if (strncmp(colonPosition, "true", length) == 0)
+                    entity->kind = true;
+                else
+                    entity->kind = false;
+            }
+            return entity;
+        }
+        default:
+            return NULL;
+    }
+}
+
+
+static char *objectToJson(DataType responseType, void *object) {
 
     if (responseType == NONE || object == NULL) {
         return NULL;
@@ -323,7 +378,7 @@ static char *objectToJson(ResponseType responseType, void *object) {
     }
 }
 
-void sendResponse(SOCKET client, int httpCode, ResponseType responseType, void *object) {
+void sendResponse(SOCKET client, int httpCode, DataType responseType, void *object) {
     initStatus();
     char resp[512];
     char *objectAsJson = objectToJson(responseType, object);

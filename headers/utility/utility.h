@@ -11,7 +11,7 @@ typedef enum {
     ITALIAN_ENTITIES,
     ENGLISH_ENTITIES,
     ERROR_MESSAGE,
-} ResponseType;
+} DataType;
 
 char *readHeaders(SOCKET client);
 
@@ -27,6 +27,8 @@ char *readBody(SOCKET client, int contentLength);
 
 int matchEndpoint(const char *path, const char *pathPattern, char **outUUID);
 
-void sendResponse(SOCKET client, int httpCode, ResponseType responseType, void *object);
+void sendResponse(SOCKET client, int httpCode, DataType responseType, void *object);
+
+void *jsonToObject(DataType dataType, char *json);
 
 #endif
