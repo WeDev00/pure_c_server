@@ -214,8 +214,8 @@ void *jsonToObject(DataType dataType, char *json) {
             char *colonPosition = findNth(json, ':', 1);
             char *commaPosition = findNth(json, ',', 1);
             if (colonPosition && commaPosition && commaPosition > colonPosition) {
-                colonPosition += 2; // remove colon and "
-                commaPosition--; // remove "
+                colonPosition += 2; // remove colon and double quotes
+                commaPosition--; // remove double quotes
                 int length = commaPosition - colonPosition;
                 strncpy(entity->greet, colonPosition, length);
                 entity->greet[length] = '\0';

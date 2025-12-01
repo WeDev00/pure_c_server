@@ -5,6 +5,8 @@ int englishCreate(const EnglishEntity *rec) {}
 
 EnglishEntity *englishRead(const char *id) {}
 
+EnglishEntity **englishReadAll() {}
+
 void englishUpdate(int id, EnglishEntity entity) {}
 
 int englishDelete(const char *id) {}
