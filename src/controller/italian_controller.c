@@ -6,6 +6,7 @@
 
 
 static void create(SOCKET client, int contentLength, char *UUID) {
+    printf("italian/create");
     char *body = readBody(client, contentLength);
 
     printf("READ BODY:\n%.*s", contentLength, body);
@@ -18,15 +19,20 @@ static void create(SOCKET client, int contentLength, char *UUID) {
 }
 
 static void read(SOCKET client, int contentLength, char *UUID) {
+    printf("italian/read/{id}");
     const ItalianEntity *entity = italianServiceRead(UUID);
     sendResponse(client, 200, ITALIAN_ENTITY, entity);
 }
 
-static void readAll(SOCKET client, int contentLength, char *UUID) {}
+static void readAll(SOCKET client, int contentLength, char *UUID) {
+    printf("italian/readAll");
+    ItalianEntity **entities = italianServiceReadAll();
+    sendResponse(client, 200, ITALIAN_ENTITIES, entities);
+}
 
-static void update(SOCKET client, int contentLength, char *UUID) {}
+static void update(SOCKET client, int contentLength, char *UUID) { printf("italian/update/{id}"); }
 
-static void delete(SOCKET client, int contentLength, char *UUID) {}
+static void delete(SOCKET client, int contentLength, char *UUID) { printf("italian/delete/{id}"); }
 
 static Endpoint endpoints[] = {
         {"POST", "/italian", create}, {"GET", "/italian", readAll},   {"GET", "/italian/{id}", read},
@@ -47,7 +53,8 @@ void italianControllerSwitch(const SOCKET client, const char *path, const char *
             cmp_len = strlen(endpoints[i].path);
         }
         const int isPathValid = strncmp(path, endpoints[i].path, cmp_len);
-        if (isPathValid == 0 && matchEndpoint(path, endpoints[i].path, &UUID)) {
+        if (isPathValid == 0 && strcmp(method, endpoints[i].method) == 0 &&
+            matchEndpoint(path, endpoints[i].path, &UUID)) {
             endpoints[i].handler(client, contentLength, UUID);
             handled = 1;
             break;
@@ -55,18 +62,7 @@ void italianControllerSwitch(const SOCKET client, const char *path, const char *
     }
 
     if (handled == 0) {
-        const char *resp = "HTTP/1.1 400 METHOD NOT FOUND\r\n"
-                           "Content-Type: text/plain\r\n"
-                           "Connection: close\r\n"
-                           "\r\n"
-                           "BAD_REQUEST";
-        if (send(client, resp, (int) strlen(resp), 0) == SOCKET_ERROR) {
-            int err = WSAGetLastError();
-            printf("send error: %d\n", err);
-        } else {
-            shutdown(client, SD_SEND);
-            char tmp[128];
-            recv(client, tmp, sizeof(tmp), 0); // read ACK or close if necessary
-        }
+        char *errorMessage = "Method not found";
+        sendResponse(client, 400, ERROR_MESSAGE, errorMessage);
     }
 }

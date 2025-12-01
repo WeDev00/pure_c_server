@@ -4,6 +4,7 @@
 #include "../../headers/utility/utility.h"
 
 static void create(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/create");
     char *body = readBody(client, contentLength);
 
     printf("BODY LETTO:\n%.*s", contentLength, body);
@@ -16,6 +17,7 @@ static void create(SOCKET client, int contentLength, char *UUID) {
 }
 
 static void read(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/read/{id}");
     char resp[256];
     snprintf(resp, sizeof(resp),
              "HTTP/1.1 200 OK\r\n"
@@ -27,6 +29,7 @@ static void read(SOCKET client, int contentLength, char *UUID) {
 }
 
 static void readAll(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/readAll");
     const char *resp = "HTTP/1.1 200 OK\r\n"
                        "Content-Type: text/plain\r\n"
                        "Connection: close\r\n\r\n"
@@ -34,9 +37,9 @@ static void readAll(SOCKET client, int contentLength, char *UUID) {
     send(client, resp, (int) strlen(resp), 0);
 }
 
-static void update(SOCKET client, int contentLength, char *UUID) {}
+static void update(SOCKET client, int contentLength, char *UUID) { printf("/english/update/{id}"); }
 
-static void delete(SOCKET client, int contentLength, char *UUID) {}
+static void delete(SOCKET client, int contentLength, char *UUID) { printf("/english/delete/{id}"); }
 
 // endpoints definitions
 static Endpoint endpoints[] = {

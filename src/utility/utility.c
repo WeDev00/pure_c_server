@@ -11,7 +11,7 @@ static const char *HTTP_STATUS[600] = {0};
 
 static void initStatus() {
     HTTP_STATUS[200] = "OK";
-    HTTP_STATUS[404] = "NOT_FOUND";
+    HTTP_STATUS[400] = "METHOD_NOT_FOUND", HTTP_STATUS[404] = "NOT_FOUND";
     HTTP_STATUS[500] = "INTERNAL_SERVER_ERROR";
 }
 
@@ -267,12 +267,11 @@ static char *objectToJson(ResponseType responseType, void *object) {
         case ENGLISH_ENTITIES: {
             EnglishEntity **list = (EnglishEntity **) object;
 
-            strcat(json, "["); // apertura array JSON
+            strcat(json, "[");
 
             for (int i = 0; list[i] != NULL; i++) {
                 EnglishEntity *e = list[i];
 
-                // serializzazione della lista di numeri
                 char listBuf[512];
                 listBuf[0] = '\0';
                 strcat(listBuf, "[");
@@ -309,9 +308,12 @@ static char *objectToJson(ResponseType responseType, void *object) {
             return json;
         }
         case ERROR_MESSAGE: {
-            strcat(json, "{\n"
-                         "\"error:\""
-                         "some error occured");
+            char element[512];
+            snprintf(element, sizeof(element),
+                     "{\n"
+                     "\"error:\":\"%s\"\n}",
+                     (char *) object);
+            strcat(json, element);
             return json;
         }
         default: {
@@ -332,5 +334,12 @@ void sendResponse(SOCKET client, int httpCode, ResponseType responseType, void *
              "Connection: close\r\n\r\n"
              "%s\n",
              httpCode, getStatus(httpCode), objectAsJson == NULL ? "" : objectAsJson);
-    send(client, resp, (int) strlen(resp), 0);
+    if (send(client, resp, (int) strlen(resp), 0) == SOCKET_ERROR) {
+        int err = WSAGetLastError();
+        printf("send error: %d\n", err);
+    } else {
+        shutdown(client, SD_SEND);
+        char tmp[128];
+        recv(client, tmp, sizeof(tmp), 0); // read ACK or close if necessary
+    }
 }
