@@ -11,12 +11,12 @@ typedef struct {
     int length;
     char *object_json;
     int *listArray;
-    int list_size;
+    int arraySize;
 } EnglishEntity;
 
-int englishCreate(const EnglishEntity *rec);
+int englishCreate(const EnglishEntity *entityToSave);
 EnglishEntity *englishRead(const char *id);
-void englishUpdate(int id, EnglishEntity entity);
+void englishUpdate(int id, EnglishEntity entityToUpdate);
 int englishDelete(const char *id);
 
 #endif

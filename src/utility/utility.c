@@ -211,6 +211,7 @@ void *jsonToObject(DataType dataType, char *json) {
         case ITALIAN_ENTITY: {
             ItalianEntity *entity = malloc(sizeof(ItalianEntity));
             memset(entity->id, '\0', sizeof(entity->id)); // setting the new ID as NULL, the db will handle this
+            // extract "greet" and length fields
             char *colonPosition = findNth(json, ':', 1);
             char *commaPosition = findNth(json, ',', 1);
             if (colonPosition && commaPosition && commaPosition > colonPosition) {
@@ -221,6 +222,7 @@ void *jsonToObject(DataType dataType, char *json) {
                 entity->greet[length] = '\0';
                 entity->length = length;
             }
+            // extract "kind" field
             colonPosition = findNth(json, ':', 2);
             commaPosition = findNth(json, ',', 2);
             if (colonPosition && commaPosition && commaPosition > colonPosition) {
@@ -231,6 +233,63 @@ void *jsonToObject(DataType dataType, char *json) {
                 else
                     entity->kind = false;
             }
+            return entity;
+        }
+        case ENGLISH_ENTITY: {
+            EnglishEntity *entity = malloc(sizeof(EnglishEntity));
+            memset(entity->id, '\0', sizeof(entity->id));
+            // extract "greet" and length fields
+            char *colonPosition = findNth(json, ':', 1);
+            char *commaPosition = findNth(json, ',', 1);
+            if (colonPosition && commaPosition && commaPosition > colonPosition) {
+                colonPosition += 2; // remove colon and double quotes
+                commaPosition--; // remove double quotes
+                int length = commaPosition - colonPosition;
+                strncpy(entity->greet, colonPosition, length);
+                entity->greet[length] = '\0';
+                entity->length = length;
+            }
+
+            // extract "kind" field
+            colonPosition = findNth(json, ':', 2);
+            commaPosition = findNth(json, ',', 2);
+            if (colonPosition && commaPosition && commaPosition > colonPosition) {
+                colonPosition++;
+                int length = commaPosition - colonPosition;
+                if (strncmp(colonPosition, "true", length) == 0)
+                    entity->kind = true;
+                else
+                    entity->kind = false;
+            }
+
+            // extract jsonObject field
+            char *openCurlyBracesPosition = findNth(json, '{', 2);
+            char *closeCurlyBracesPosition = findNth(json, '}', 1) + 1;
+            if (openCurlyBracesPosition && closeCurlyBracesPosition &&
+                closeCurlyBracesPosition > openCurlyBracesPosition) {
+                int length = closeCurlyBracesPosition - openCurlyBracesPosition;
+                entity->object_json = malloc((length) * sizeof(char));
+                strncpy(entity->object_json, openCurlyBracesPosition, length);
+                entity->object_json[length] = '\0';
+            }
+
+            // extract "listArray" field
+            char *openSquareBracketsPosition = findNth(json, '[', 1);
+            char *closeSquareBracketsPosition = findNth(json, ']', 1);
+            openSquareBracketsPosition++; // remove bracket
+            int length = closeSquareBracketsPosition - openSquareBracketsPosition;
+            char *arrayAsString = malloc(length * sizeof(char));
+            strncpy(arrayAsString, openSquareBracketsPosition, length);
+            arrayAsString[length] = '\0';
+            entity->listArray = malloc(50 * sizeof(int));
+            int count = 0;
+            char *token = strtok(arrayAsString, ","); // primo token
+            while (token != NULL) {
+                entity->listArray[count] = atoi(token); // converti token in int
+                count++;
+                token = strtok(NULL, ","); // token successivi
+            }
+            entity->arraySize = count;
             return entity;
         }
         default:
@@ -268,11 +327,11 @@ static char *objectToJson(DataType responseType, void *object) {
             listBuf[0] = '\0';
             strcat(listBuf, "[");
 
-            for (int i = 0; i < e->list_size; i++) {
+            for (int i = 0; i < sizeof(&e->listArray) / sizeof(int); i++) {
                 char num[16];
                 snprintf(num, sizeof(num), "%d", e->listArray[i]);
                 strcat(listBuf, num);
-                if (i < e->list_size - 1)
+                if (i < sizeof(&e->listArray) / sizeof(int) - 1)
                     strcat(listBuf, ",");
             }
 
@@ -330,11 +389,11 @@ static char *objectToJson(DataType responseType, void *object) {
                 char listBuf[512];
                 listBuf[0] = '\0';
                 strcat(listBuf, "[");
-                for (int j = 0; j < e->list_size; j++) {
+                for (int j = 0; j < sizeof(&e->listArray) / sizeof(int); j++) {
                     char num[16];
                     snprintf(num, sizeof(num), "%d", e->listArray[j]);
                     strcat(listBuf, num);
-                    if (j < e->list_size - 1)
+                    if (j < sizeof(&e->listArray) / sizeof(int) - 1)
                         strcat(listBuf, ",");
                 }
                 strcat(listBuf, "]");
