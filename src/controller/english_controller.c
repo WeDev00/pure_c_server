@@ -38,7 +38,19 @@ static void readAll(SOCKET client, int contentLength, char *UUID) {
         sendResponse(client, 200, ENGLISH_ENTITIES, entities);
 }
 
-static void update(SOCKET client, int contentLength, char *UUID) { printf("/english/update/{id}"); }
+static void update(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/update/{id}");
+    char *body = readBody(client, contentLength);
+    EnglishEntity *entity = (EnglishEntity *) jsonToObject(ENGLISH_ENTITY, body);
+    const int operationResult = englishServiceUpdate(UUID, *entity);
+
+    if (operationResult != 0) {
+        char *errorMessage = "Qualcosa è andato storto";
+        sendResponse(client, 500, ERROR_MESSAGE, errorMessage);
+    } else {
+        sendResponse(client, 200, ENGLISH_ENTITY, NULL);
+    }
+}
 
 static void delete(SOCKET client, int contentLength, char *UUID) { printf("/english/delete/{id}"); }
 

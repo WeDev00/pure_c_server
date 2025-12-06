@@ -29,5 +29,17 @@ EnglishEntity **englishServiceReadAll() {
 
     return entities;
 }
-int englishServiceUpdate(char *id, EnglishEntity entity) {}
+int englishServiceUpdate(char *id, EnglishEntity entity) {
+
+    if (id == NULL) {
+        fprintf(stderr, "[SERVICE] Update failed: ID cannot be NULL\n");
+        return -1;
+    }
+
+    int result = englishUpdate(id, entity);
+
+    if (result == 0)
+        printf("[SERVICE] English updated successfully\n");
+    return result;
+}
 int englishServiceDelete(const char *id) {}

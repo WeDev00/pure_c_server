@@ -173,6 +173,53 @@ EnglishEntity **englishReadAll() {
     PQclear(res);
     return entities;
 }
-void englishUpdate(int id, EnglishEntity entityToUpdate) {}
+int englishUpdate(char *id, EnglishEntity entity) {
+    PGconn *conn = GLOBAL_DB_CONN;
+    const char *params[6];
+    params[0] = entity.greet;
+    params[1] = entity.kind ? "t" : "f";
+    char length_buf[12];
+
+    snprintf(length_buf, sizeof(length_buf), "%d", entity.length);
+    params[2] = length_buf;
+
+    params[3] = entity.object_json;
+    char *integerListAsString = malloc(1024 * sizeof(char));
+    int averageSizePerElement = 1024 / entity.arraySize;
+    for (int i = 0; i < entity.arraySize; i++) {
+        int number = entity.listArray[i];
+        if (i == 0) {
+            snprintf(integerListAsString, averageSizePerElement, "{%d,", number);
+        } else if (i == entity.arraySize - 1) {
+            char *toAttach = malloc(averageSizePerElement * sizeof(char));
+            snprintf(toAttach, averageSizePerElement, "%d", number);
+            strcat(integerListAsString, toAttach);
+            free(toAttach);
+        } else {
+            char *toAttach = malloc(averageSizePerElement * sizeof(char));
+            snprintf(toAttach, averageSizePerElement, "%d,", number);
+            strcat(integerListAsString, toAttach);
+            free(toAttach);
+        }
+    }
+    strcat(integerListAsString, "}");
+    params[4] = integerListAsString;
+    char id_buf[37];
+    snprintf(id_buf, sizeof(id_buf), "%s", id);
+    params[5] = id_buf;
+
+    PGresult *res =
+            PQexecParams(conn, "UPDATE english SET greet=$1, kind=$2, length=$3, object=$4, list=$5 WHERE ID=$6;", 6,
+                         NULL, params, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Error updating english: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return -1;
+    }
+
+    PQclear(res);
+    return 0;
+}
 
 int englishDelete(const char *id) {}
