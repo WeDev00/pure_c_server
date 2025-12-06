@@ -29,7 +29,14 @@ static void read(SOCKET client, int contentLength, char *UUID) {
     }
 }
 
-static void readAll(SOCKET client, int contentLength, char *UUID) { printf("/english/readAll"); }
+static void readAll(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/readAll");
+    EnglishEntity **entities = englishServiceReadAll();
+    if (entities == NULL)
+        sendResponse(client, 500, ERROR_MESSAGE, "There's no data to read");
+    else
+        sendResponse(client, 200, ENGLISH_ENTITIES, entities);
+}
 
 static void update(SOCKET client, int contentLength, char *UUID) { printf("/english/update/{id}"); }
 

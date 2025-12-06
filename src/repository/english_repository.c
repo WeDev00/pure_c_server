@@ -94,7 +94,7 @@ EnglishEntity *englishRead(const char *id) {
     entity->object_json[length + 1] = '\0';
     int count = 0;
     char *arrayAsString = PQgetvalue(res, 0, 5);
-    char *copyToCount = strdup(arrayAsString);
+    char *copyToCount = strdup(arrayAsString); // creation of a result copy to count elements in the array
     char *token = strtok(copyToCount, ",");
 
     while (token != NULL) {
@@ -116,8 +116,63 @@ EnglishEntity *englishRead(const char *id) {
     return entity;
 }
 
-EnglishEntity **englishReadAll() {}
+EnglishEntity **englishReadAll() {
+    PGconn *conn = GLOBAL_DB_CONN;
+    PGresult *res = PQexecParams(conn, "SELECT * FROM english;", 0, NULL, NULL, NULL, NULL, 0);
 
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "[englishReadAll] Query error: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return NULL;
+    }
+
+    int rows = PQntuples(res);
+    if (rows <= 0) {
+        return NULL;
+    }
+
+    EnglishEntity **entities = malloc(rows * sizeof(EnglishEntity *));
+    if (!entities) {
+        fprintf(stderr, "[englishReadAll] malloc failed\n");
+        PQclear(res);
+        return NULL;
+    }
+    for (int i = 0; i < rows; i++) {
+        entities[i] = malloc(sizeof(EnglishEntity));
+        snprintf(entities[i]->id, sizeof(entities[i]->id), "%s", PQgetvalue(res, i, 0));
+        snprintf(entities[i]->greet, sizeof(entities[i]->greet), "%s", PQgetvalue(res, i, 1));
+        entities[i]->kind = (PQgetvalue(res, i, 2)[0] == 't') ? 1 : 0;
+        entities[i]->length = atoi(PQgetvalue(res, i, 3));
+        entities[i]->object_json = malloc(1024 * sizeof(char));
+        snprintf(entities[i]->object_json, 1024, PQgetvalue(res, i, 4));
+        const char *closeCurlyBracketPosition = findNth(entities[i]->object_json, '}', 1);
+        int length = closeCurlyBracketPosition - entities[i]->object_json;
+        entities[i]->object_json[length + 1] = '\0';
+        int count = 0;
+        char *arrayAsString = PQgetvalue(res, i, 5);
+        char *copyToCount = strdup(arrayAsString); // creation of a result copy to count elements in the array
+        char *token = strtok(copyToCount, ",");
+
+        while (token != NULL) {
+            count++;
+            token = strtok(NULL, ",");
+        }
+        entities[i]->arraySize = count;
+        arrayAsString++; // delete "{"
+        arrayAsString[strlen(arrayAsString) - 1] = '\0'; // delete "}"
+        entities[i]->listArray = malloc(count * sizeof(int));
+        int j = 0;
+        token = strtok(arrayAsString, ",");
+        while (token != NULL) {
+            entities[i]->listArray[j] = atoi(token);
+            j++;
+            token = strtok(NULL, ",");
+        }
+    }
+    entities[rows] = NULL;
+    PQclear(res);
+    return entities;
+}
 void englishUpdate(int id, EnglishEntity entityToUpdate) {}
 
 int englishDelete(const char *id) {}

@@ -18,6 +18,16 @@ EnglishEntity *englishServiceRead(const char *id) {
 
     return entity;
 }
-EnglishEntity **englishServiceReadAll() {}
+EnglishEntity **englishServiceReadAll() {
+
+    EnglishEntity **entities = englishReadAll();
+
+    if (entities == NULL) {
+        printf("[SERVICE] English table is empty");
+        return NULL;
+    }
+
+    return entities;
+}
 int englishServiceUpdate(char *id, EnglishEntity entity) {}
 int englishServiceDelete(const char *id) {}

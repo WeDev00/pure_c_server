@@ -16,6 +16,7 @@ typedef struct {
 
 int englishCreate(const EnglishEntity *entityToSave);
 EnglishEntity *englishRead(const char *id);
+EnglishEntity **englishReadAll();
 void englishUpdate(int id, EnglishEntity entityToUpdate);
 int englishDelete(const char *id);
 

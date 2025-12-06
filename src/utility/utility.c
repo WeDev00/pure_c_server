@@ -304,7 +304,7 @@ static char *objectToJson(DataType responseType, void *object) {
         return NULL;
     }
 
-    char *json = malloc(2048 * sizeof(char));
+    char *json = malloc(4096 * sizeof(char));
     json[0] = '\0';
 
     switch (responseType) {
@@ -389,16 +389,16 @@ static char *objectToJson(DataType responseType, void *object) {
                 char listBuf[512];
                 listBuf[0] = '\0';
                 strcat(listBuf, "[");
-                for (int j = 0; j < sizeof(&e->listArray) / sizeof(int); j++) {
+                for (int j = 0; j < e->arraySize; j++) {
                     char num[16];
                     snprintf(num, sizeof(num), "%d", e->listArray[j]);
                     strcat(listBuf, num);
-                    if (j < sizeof(&e->listArray) / sizeof(int) - 1)
+                    if (j < e->arraySize - 1)
                         strcat(listBuf, ",");
                 }
                 strcat(listBuf, "]");
 
-                char element[512];
+                char element[1024];
                 snprintf(element, sizeof(element),
                          "{"
                          "\"id\":\"%s\","
@@ -439,7 +439,7 @@ static char *objectToJson(DataType responseType, void *object) {
 
 void sendResponse(SOCKET client, int httpCode, DataType responseType, void *object) {
     initStatus();
-    char resp[512];
+    char resp[4096];
     char *objectAsJson = objectToJson(responseType, object);
 
     snprintf(resp, sizeof(resp),
