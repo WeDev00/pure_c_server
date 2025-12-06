@@ -185,7 +185,7 @@ int matchEndpoint(const char *path, const char *pathPattern, char **outUUID) {
 }
 
 
-static char *findNth(const char *str, char c, int n) {
+char *findNth(const char *str, char c, int n) {
     const char *p = str;
     int count = 0;
 
@@ -327,11 +327,11 @@ static char *objectToJson(DataType responseType, void *object) {
             listBuf[0] = '\0';
             strcat(listBuf, "[");
 
-            for (int i = 0; i < sizeof(&e->listArray) / sizeof(int); i++) {
+            for (int i = 0; i < e->arraySize; i++) {
                 char num[16];
                 snprintf(num, sizeof(num), "%d", e->listArray[i]);
                 strcat(listBuf, num);
-                if (i < sizeof(&e->listArray) / sizeof(int) - 1)
+                if (i < e->arraySize - 1)
                     strcat(listBuf, ",");
             }
 

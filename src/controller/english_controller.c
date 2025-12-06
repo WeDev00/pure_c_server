@@ -18,7 +18,16 @@ static void create(SOCKET client, int contentLength, char *UUID) {
     }
 }
 
-static void read(SOCKET client, int contentLength, char *UUID) { printf("/english/read/{id}"); }
+static void read(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/read/{id}");
+    EnglishEntity *entity = englishServiceRead(UUID);
+    if (entity == NULL) {
+        char *errorMessage = "Qualcosa è andato storto";
+        sendResponse(client, 500, ERROR_MESSAGE, errorMessage);
+    } else {
+        sendResponse(client, 200, ENGLISH_ENTITY, entity);
+    }
+}
 
 static void readAll(SOCKET client, int contentLength, char *UUID) { printf("/english/readAll"); }
 

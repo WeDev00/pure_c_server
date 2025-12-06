@@ -29,6 +29,8 @@ int matchEndpoint(const char *path, const char *pathPattern, char **outUUID);
 
 void sendResponse(SOCKET client, int httpCode, DataType responseType, void *object);
 
+char *findNth(const char *str, char c, int n);
+
 void *jsonToObject(DataType dataType, char *json);
 
 #endif

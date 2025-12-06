@@ -11,7 +11,13 @@ int englishServiceCreate(EnglishEntity entity) {
 
     return result;
 }
-EnglishEntity *englishServiceRead(const char *id) {}
+EnglishEntity *englishServiceRead(const char *id) {
+    EnglishEntity *entity = englishRead(id);
+    if (entity == NULL)
+        printf("[SERVICE] English created successfully\n");
+
+    return entity;
+}
 EnglishEntity **englishServiceReadAll() {}
 int englishServiceUpdate(char *id, EnglishEntity entity) {}
 int englishServiceDelete(const char *id) {}
