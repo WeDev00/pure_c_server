@@ -222,4 +222,22 @@ int englishUpdate(char *id, EnglishEntity entity) {
     return 0;
 }
 
-int englishDelete(const char *id) {}
+int englishDelete(const char *id) {
+    PGconn *conn = GLOBAL_DB_CONN;
+    const char *params[1];
+    params[0] = id;
+
+    PGresult *res = PQexecParams(conn, "DELETE FROM english WHERE ID=$1;", 1, NULL, params, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "Error deleting English: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return -1;
+    }
+
+    int affected = atoi(PQcmdTuples(res)); // numero di righe eliminate
+
+    PQclear(res);
+
+    return affected;
+}

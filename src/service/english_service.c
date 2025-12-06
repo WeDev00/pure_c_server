@@ -42,4 +42,16 @@ int englishServiceUpdate(char *id, EnglishEntity entity) {
         printf("[SERVICE] English updated successfully\n");
     return result;
 }
-int englishServiceDelete(const char *id) {}
+int englishServiceDelete(const char *id) {
+    if (id == NULL) {
+        fprintf(stderr, "[SERVICE] Delete failed: NULL ID\n");
+        return -1;
+    }
+
+    int result = englishDelete(id);
+
+    if (result > 0)
+        printf("[SERVICE] English deleted successfully\n");
+
+    return result;
+}

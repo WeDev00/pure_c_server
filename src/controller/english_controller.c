@@ -52,7 +52,16 @@ static void update(SOCKET client, int contentLength, char *UUID) {
     }
 }
 
-static void delete(SOCKET client, int contentLength, char *UUID) { printf("/english/delete/{id}"); }
+static void delete(SOCKET client, int contentLength, char *UUID) {
+    printf("/english/delete/{id}");
+    const int operationResult = englishServiceDelete(UUID);
+    if (operationResult <= 0) {
+        char *errorMessage = "Qualcosa è andato storto";
+        sendResponse(client, 500, ERROR_MESSAGE, errorMessage);
+    } else {
+        sendResponse(client, 200, ENGLISH_ENTITY, NULL);
+    }
+}
 
 // endpoints definitions
 static Endpoint endpoints[] = {
